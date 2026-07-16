@@ -216,7 +216,20 @@
   <button onclick="window.print()">Als PDF speichern / drucken</button>
   <button class="secondary" onclick="saveData()">Daten speichern</button>
   <button class="secondary" onclick="clearData()">Neue Rechnung</button>
-  <p class="hint">Version 2.0 Beta 1: Rechnungsnummer und Datumsangaben werden automatisch vergeben. Alle übrigen Felder antippen, ausfüllen und anschließend „Als PDF speichern / drucken“ wählen. Im Android-Druckdialog „Als PDF speichern“ auswählen.</p>
+  <button class="secondary" onclick="archiveInvoice()">Rechnung archivieren</button>
+  <button class="secondary" onclick="toggleArchive()">Archiv öffnen</button>
+  <p class="hint">Version 2.1 Beta 1: Rechnungsnummer und Datumsangaben werden automatisch vergeben. Rechnungen können lokal archiviert und später wieder geöffnet werden. Alle übrigen Felder antippen, ausfüllen und anschließend „Als PDF speichern / drucken“ wählen. Im Android-Druckdialog „Als PDF speichern“ auswählen.</p>
+</div>
+
+<div id="archivePanel" style="display:none;padding:12px;background:#fff;border-top:1px solid #ddd;border-bottom:1px solid #ddd;">
+  <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;">
+    <strong>Rechnungsarchiv</strong>
+    <button class="secondary" onclick="toggleArchive()">Schließen</button>
+  </div>
+  <div id="archiveList" style="margin-top:12px;"></div>
+  <p style="font-size:12px;color:#555;margin:10px 0 0;">
+    Das Archiv wird ausschließlich auf diesem Gerät im Browser gespeichert.
+  </p>
 </div>
 
 <div class="viewport">
@@ -330,6 +343,95 @@ function assignInvoiceNumber(increment) {
 
   document.getElementById("invoiceNumber").value =
     formatInvoiceNumber(year, sequence);
+}
+
+
+function collectInvoiceData() {
+  const data = {};
+  ids.forEach(id => {
+    const el = document.getElementById(id);
+    data[id] = el.value;
+  });
+  data.total1 = document.getElementById("total1").value;
+  data.total2 = document.getElementById("total2").value;
+  data.total3 = document.getElementById("total3").value;
+  data.subtotal = document.getElementById("subtotal").value;
+  data.grandTotal = document.getElementById("grandTotal").value;
+  data.archivedAt = new Date().toISOString();
+  return data;
+}
+
+function archiveInvoice() {
+  const invoiceNumber = document.getElementById("invoiceNumber").value.trim();
+  if (!invoiceNumber) {
+    alert("Es ist keine Rechnungsnummer vorhanden.");
+    return;
+  }
+
+  const archive = JSON.parse(localStorage.getItem("jbbInvoiceArchive") || "{}");
+  archive[invoiceNumber] = collectInvoiceData();
+  localStorage.setItem("jbbInvoiceArchive", JSON.stringify(archive));
+  alert("Rechnung " + invoiceNumber + " wurde im Archiv gespeichert.");
+}
+
+function toggleArchive() {
+  const panel = document.getElementById("archivePanel");
+  const show = panel.style.display === "none" || !panel.style.display;
+  panel.style.display = show ? "block" : "none";
+  if (show) renderArchive();
+}
+
+function renderArchive() {
+  const container = document.getElementById("archiveList");
+  const archive = JSON.parse(localStorage.getItem("jbbInvoiceArchive") || "{}");
+  const entries = Object.entries(archive).sort((a, b) =>
+    (b[1].archivedAt || "").localeCompare(a[1].archivedAt || "")
+  );
+
+  if (!entries.length) {
+    container.innerHTML = '<p style="margin:0;color:#666;">Noch keine Rechnungen archiviert.</p>';
+    return;
+  }
+
+  container.innerHTML = entries.map(([number, data]) => {
+    const date = data.invoiceDate || "";
+    const amount = data.grandTotal || "";
+    return `
+      <div style="display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;padding:10px 0;border-bottom:1px solid #ddd;">
+        <div>
+          <strong>${number}</strong><br>
+          <span style="font-size:12px;color:#555;">${date}${amount ? " · " + amount : ""}</span>
+        </div>
+        <div style="display:flex;gap:6px;">
+          <button onclick="loadArchivedInvoice('${number.replace(/'/g, "\\'")}')">Öffnen</button>
+          <button class="secondary" onclick="deleteArchivedInvoice('${number.replace(/'/g, "\\'")}')">Löschen</button>
+        </div>
+      </div>`;
+  }).join("");
+}
+
+function loadArchivedInvoice(number) {
+  const archive = JSON.parse(localStorage.getItem("jbbInvoiceArchive") || "{}");
+  const data = archive[number];
+  if (!data) return;
+
+  ids.forEach(id => {
+    const el = document.getElementById(id);
+    if (id in data) el.value = data[id];
+  });
+
+  calculate();
+  saveData();
+  document.getElementById("archivePanel").style.display = "none";
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+function deleteArchivedInvoice(number) {
+  if (!confirm("Rechnung " + number + " wirklich aus dem Archiv löschen?")) return;
+  const archive = JSON.parse(localStorage.getItem("jbbInvoiceArchive") || "{}");
+  delete archive[number];
+  localStorage.setItem("jbbInvoiceArchive", JSON.stringify(archive));
+  renderArchive();
 }
 
 function saveData() {
