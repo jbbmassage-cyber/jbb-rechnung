@@ -218,7 +218,10 @@
   <button class="secondary" onclick="clearData()">Neue Rechnung</button>
   <button class="secondary" onclick="archiveInvoice()">Rechnung archivieren</button>
   <button class="secondary" onclick="toggleArchive()">Archiv öffnen</button>
-  <p class="hint">Version 2.1 Beta 1: Rechnungsnummer und Datumsangaben werden automatisch vergeben. Rechnungen können lokal archiviert und später wieder geöffnet werden. Alle übrigen Felder antippen, ausfüllen und anschließend „Als PDF speichern / drucken“ wählen. Im Android-Druckdialog „Als PDF speichern“ auswählen.</p>
+  <button class="secondary" onclick="exportBackup()">Backup exportieren</button>
+  <button class="secondary" onclick="document.getElementById('backupFile').click()">Backup importieren</button>
+  <input id="backupFile" type="file" accept=".json,application/json" style="display:none" onchange="importBackup(event)">
+  <p class="hint">Version 2.2 Beta 1: Rechnungsnummer und Datumsangaben werden automatisch vergeben. Rechnungen können lokal archiviert, durchsucht und als Backup gesichert werden. Alle übrigen Felder antippen, ausfüllen und anschließend „Als PDF speichern / drucken“ wählen. Im Android-Druckdialog „Als PDF speichern“ auswählen.</p>
 </div>
 
 <div id="archivePanel" style="display:none;padding:12px;background:#fff;border-top:1px solid #ddd;border-bottom:1px solid #ddd;">
@@ -226,6 +229,8 @@
     <strong>Rechnungsarchiv</strong>
     <button class="secondary" onclick="toggleArchive()">Schließen</button>
   </div>
+  <input id="archiveSearch" type="search" placeholder="Archiv durchsuchen: Nummer, Datum oder Betrag"
+    oninput="renderArchive()" style="width:100%;padding:10px;margin-top:12px;border:1px solid #bbb;border-radius:8px;">
   <div id="archiveList" style="margin-top:12px;"></div>
   <p style="font-size:12px;color:#555;margin:10px 0 0;">
     Das Archiv wird ausschließlich auf diesem Gerät im Browser gespeichert.
@@ -346,6 +351,72 @@ function assignInvoiceNumber(increment) {
 }
 
 
+
+function exportBackup() {
+  const backup = {
+    version: "2.2",
+    exportedAt: new Date().toISOString(),
+    invoiceCounter: {},
+    currentDraft: localStorage.getItem("jbbInvoice"),
+    invoiceArchive: localStorage.getItem("jbbInvoiceArchive"),
+    defaultPrices: localStorage.getItem("jbbDefaultPrices")
+  };
+
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i);
+    if (key && key.startsWith("jbbInvoiceCounter_")) {
+      backup.invoiceCounter[key] = localStorage.getItem(key);
+    }
+  }
+
+  const blob = new Blob([JSON.stringify(backup, null, 2)], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  const date = new Date().toISOString().slice(0, 10);
+  link.href = url;
+  link.download = "JBB_Rechnungs_Backup_" + date + ".json";
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
+}
+
+function importBackup(event) {
+  const file = event.target.files && event.target.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = function () {
+    try {
+      const backup = JSON.parse(reader.result);
+
+      if (backup.currentDraft) localStorage.setItem("jbbInvoice", backup.currentDraft);
+      else localStorage.removeItem("jbbInvoice");
+
+      if (backup.invoiceArchive) localStorage.setItem("jbbInvoiceArchive", backup.invoiceArchive);
+      else localStorage.removeItem("jbbInvoiceArchive");
+
+      if (backup.defaultPrices) localStorage.setItem("jbbDefaultPrices", backup.defaultPrices);
+
+      if (backup.invoiceCounter && typeof backup.invoiceCounter === "object") {
+        Object.entries(backup.invoiceCounter).forEach(([key, value]) => {
+          if (key.startsWith("jbbInvoiceCounter_")) {
+            localStorage.setItem(key, String(value));
+          }
+        });
+      }
+
+      alert("Das Backup wurde erfolgreich importiert. Die App wird neu geladen.");
+      location.reload();
+    } catch (error) {
+      alert("Die ausgewählte Datei ist kein gültiges JBB-Backup.");
+    } finally {
+      event.target.value = "";
+    }
+  };
+  reader.readAsText(file);
+}
+
 function collectInvoiceData() {
   const data = {};
   ids.forEach(id => {
@@ -384,12 +455,27 @@ function toggleArchive() {
 function renderArchive() {
   const container = document.getElementById("archiveList");
   const archive = JSON.parse(localStorage.getItem("jbbInvoiceArchive") || "{}");
-  const entries = Object.entries(archive).sort((a, b) =>
-    (b[1].archivedAt || "").localeCompare(a[1].archivedAt || "")
-  );
+  const query = (document.getElementById("archiveSearch")?.value || "").trim().toLowerCase();
+
+  const entries = Object.entries(archive)
+    .filter(([number, data]) => {
+      if (!query) return true;
+      const searchable = [
+        number,
+        data.invoiceDate || "",
+        data.serviceDate || "",
+        data.dueDate || "",
+        data.grandTotal || "",
+        data.subtotal || ""
+      ].join(" ").toLowerCase();
+      return searchable.includes(query);
+    })
+    .sort((a, b) =>
+      (b[1].archivedAt || "").localeCompare(a[1].archivedAt || "")
+    );
 
   if (!entries.length) {
-    container.innerHTML = '<p style="margin:0;color:#666;">Noch keine Rechnungen archiviert.</p>';
+    container.innerHTML = '<p style="margin:0;color:#666;">Keine passenden Rechnungen gefunden.</p>';
     return;
   }
 
