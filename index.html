@@ -216,7 +216,7 @@
   <button onclick="window.print()">Als PDF speichern / drucken</button>
   <button class="secondary" onclick="saveData()">Daten speichern</button>
   <button class="secondary" onclick="clearData()">Neue Rechnung</button>
-  <p class="hint">Die Rechnungsnummer wird automatisch vergeben. Alle übrigen Felder antippen, ausfüllen und anschließend „Als PDF speichern / drucken“ wählen. Im Android-Druckdialog „Als PDF speichern“ auswählen.</p>
+  <p class="hint">Version 2.0 Beta 1: Rechnungsnummer und Datumsangaben werden automatisch vergeben. Alle übrigen Felder antippen, ausfüllen und anschließend „Als PDF speichern / drucken“ wählen. Im Android-Druckdialog „Als PDF speichern“ auswählen.</p>
 </div>
 
 <div class="viewport">
@@ -270,7 +270,45 @@ function calculate() {
   document.getElementById("grandTotal").value = euro(grand);
 }
 document.querySelectorAll(".qty,.unit,#discount").forEach(el => el.addEventListener("input", calculate));
+document.querySelectorAll("#invoiceDate,#serviceDate,#dueDate").forEach(
+  el => el.addEventListener("input", formatDateInput)
+);
 
+
+
+function formatGermanDate(date) {
+  const day = String(date.getDate()).padStart(2, "0");
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  return day + "." + month + "." + date.getFullYear();
+}
+
+function setAutomaticDates(force) {
+  const invoiceField = document.getElementById("invoiceDate");
+  const serviceField = document.getElementById("serviceDate");
+  const dueField = document.getElementById("dueDate");
+
+  const today = new Date();
+  const due = new Date(today);
+  due.setDate(due.getDate() + 14);
+
+  if (force || !invoiceField.value) invoiceField.value = formatGermanDate(today);
+  if (force || !serviceField.value) serviceField.value = formatGermanDate(today);
+  if (force || !dueField.value) dueField.value = formatGermanDate(due);
+}
+
+function formatDateInput(event) {
+  const input = event.target;
+  const digits = input.value.replace(/\D/g, "").slice(0, 8);
+  let formatted = digits;
+
+  if (digits.length > 4) {
+    formatted = digits.slice(0, 2) + "." + digits.slice(2, 4) + "." + digits.slice(4);
+  } else if (digits.length > 2) {
+    formatted = digits.slice(0, 2) + "." + digits.slice(2);
+  }
+
+  input.value = formatted;
+}
 
 function invoiceYear() {
   return new Date().getFullYear();
@@ -307,6 +345,7 @@ function loadData() {
   const raw = localStorage.getItem("jbbInvoice");
   if (!raw) {
     assignInvoiceNumber(false);
+    setAutomaticDates(false);
     calculate();
     return;
   }
@@ -329,6 +368,7 @@ function clearData() {
   document.getElementById("discount").value = "0";
   localStorage.removeItem("jbbInvoice");
   assignInvoiceNumber(true);
+  setAutomaticDates(true);
   calculate();
 }
 loadData();
