@@ -198,6 +198,30 @@
       font-size:9pt; height:1.55%; padding:0;
     }
   }
+
+  #customerHeading {
+    position:absolute; left:49.8%; top:22.95%; width:44%;
+    font-size:clamp(6px,0.85vw,10px); font-weight:700; color:#3b2419;
+  }
+  .customer-field {
+    position:absolute; height:0.92%; min-height:10px;
+    font-size:clamp(6px,0.9vw,10px) !important;
+    padding:0 3px !important;
+  }
+  #customerName    { left:49.8%; top:23.75%; width:21.5%; }
+  #customerCompany { left:72.0%; top:23.75%; width:21.8%; }
+  #customerStreet  { left:49.8%; top:24.80%; width:44.0%; }
+  #customerPostal  { left:49.8%; top:25.85%; width:9.5%; }
+  #customerCity    { left:60.0%; top:25.85%; width:20.0%; }
+  #customerCountry { left:80.7%; top:25.85%; width:13.1%; }
+  #customerPhone   { left:49.8%; top:26.90%; width:21.5%; }
+  #customerEmail   { left:72.0%; top:26.90%; width:21.8%; }
+
+  @media print {
+    #customerHeading { font-size:6.5pt; }
+    .customer-field { font-size:6.5pt !important; }
+  }
+
 </style>
 
 <link rel="manifest" href="manifest.webmanifest">
@@ -218,10 +242,28 @@
   <button class="secondary" onclick="clearData()">Neue Rechnung</button>
   <button class="secondary" onclick="archiveInvoice()">Rechnung archivieren</button>
   <button class="secondary" onclick="toggleArchive()">Archiv öffnen</button>
+
+  <button class="secondary" onclick="saveCustomer()">Kunde speichern</button>
+  <button class="secondary" onclick="toggleCustomerPanel()">Kunde auswählen</button>
+
   <button class="secondary" onclick="exportBackup()">Backup exportieren</button>
   <button class="secondary" onclick="document.getElementById('backupFile').click()">Backup importieren</button>
   <input id="backupFile" type="file" accept=".json,application/json" style="display:none" onchange="importBackup(event)">
-  <p class="hint">Version 2.2 Beta 1: Rechnungsnummer und Datumsangaben werden automatisch vergeben. Rechnungen können lokal archiviert, durchsucht und als Backup gesichert werden. Alle übrigen Felder antippen, ausfüllen und anschließend „Als PDF speichern / drucken“ wählen. Im Android-Druckdialog „Als PDF speichern“ auswählen.</p>
+  <p class="hint">Version 2.3 Beta 1: Rechnungsnummer und Datumsangaben werden automatisch vergeben. Kundendaten können gespeichert und wieder ausgewählt werden. Rechnungen können lokal archiviert, durchsucht und als Backup gesichert werden. Alle übrigen Felder antippen, ausfüllen und anschließend „Als PDF speichern / drucken“ wählen. Im Android-Druckdialog „Als PDF speichern“ auswählen.</p>
+</div>
+
+
+<div id="customerPanel" style="display:none;padding:12px;background:#fff;border-top:1px solid #ddd;border-bottom:1px solid #ddd;">
+  <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;">
+    <strong>Kundenverwaltung</strong>
+    <button class="secondary" onclick="toggleCustomerPanel()">Schließen</button>
+  </div>
+  <input id="customerSearch" type="search" placeholder="Kunden nach Name, Firma, Ort oder E-Mail suchen"
+    oninput="renderCustomers()" style="width:100%;padding:10px;margin-top:12px;border:1px solid #bbb;border-radius:8px;">
+  <div id="customerList" style="margin-top:12px;"></div>
+  <p style="font-size:12px;color:#555;margin:10px 0 0;">
+    Kundendaten werden ausschließlich lokal auf diesem Gerät gespeichert.
+  </p>
 </div>
 
 <div id="archivePanel" style="display:none;padding:12px;background:#fff;border-top:1px solid #ddd;border-bottom:1px solid #ddd;">
@@ -244,6 +286,17 @@
   <input class="field" id="serviceDate"      style="text-align:right;direction:ltr;font-size:9px;font-weight:normal;padding:0 4px 0 1px;line-height:1;" type="text" inputmode="numeric" maxlength="10" placeholder="TT.MM.JJJJ" aria-label="Leistungsdatum">
   <input class="field" id="dueDate"      style="text-align:right;direction:ltr;font-size:9px;font-weight:normal;padding:0 4px 0 1px;line-height:1;" type="text" inputmode="numeric" maxlength="10" placeholder="TT.MM.JJJJ" aria-label="Fälligkeitsdatum">
 
+
+  <div id="customerHeading">KUNDENDATEN / CUSTOMER</div>
+  <input class="field customer-field" id="customerName" placeholder="Name">
+  <input class="field customer-field" id="customerCompany" placeholder="Firma (optional)">
+  <input class="field customer-field" id="customerStreet" placeholder="Straße und Hausnummer">
+  <input class="field customer-field" id="customerPostal" placeholder="PLZ">
+  <input class="field customer-field" id="customerCity" placeholder="Ort">
+  <input class="field customer-field" id="customerCountry" placeholder="Land">
+  <input class="field customer-field" id="customerPhone" inputmode="tel" placeholder="Telefon (optional)">
+  <input class="field customer-field" id="customerEmail" inputmode="email" placeholder="E-Mail (optional)">
+
   <input class="field money qty" id="qty1" type="number" min="0" step="1" inputmode="decimal">
   <input class="field money unit" id="unit1" type="number" min="0" step="0.01" inputmode="decimal">
   <input class="field money total" id="total1" type="text" readonly>
@@ -265,6 +318,7 @@
 <script>
 const ids = [
   "invoiceNumber","invoiceDate","serviceDate","dueDate",
+  "customerName","customerCompany","customerStreet","customerPostal","customerCity","customerCountry","customerPhone","customerEmail",
   "qty1","unit1","qty2","unit2","qty3","unit3",
   "discount"
 ];
@@ -359,7 +413,8 @@ function exportBackup() {
     invoiceCounter: {},
     currentDraft: localStorage.getItem("jbbInvoice"),
     invoiceArchive: localStorage.getItem("jbbInvoiceArchive"),
-    defaultPrices: localStorage.getItem("jbbDefaultPrices")
+    defaultPrices: localStorage.getItem("jbbDefaultPrices"),
+    customers: localStorage.getItem("jbbCustomers")
   };
 
   for (let i = 0; i < localStorage.length; i++) {
@@ -398,6 +453,8 @@ function importBackup(event) {
 
       if (backup.defaultPrices) localStorage.setItem("jbbDefaultPrices", backup.defaultPrices);
 
+      if (backup.customers) localStorage.setItem("jbbCustomers", backup.customers);
+
       if (backup.invoiceCounter && typeof backup.invoiceCounter === "object") {
         Object.entries(backup.invoiceCounter).forEach(([key, value]) => {
           if (key.startsWith("jbbInvoiceCounter_")) {
@@ -417,6 +474,141 @@ function importBackup(event) {
   reader.readAsText(file);
 }
 
+
+function getCustomers() {
+  try {
+    return JSON.parse(localStorage.getItem("jbbCustomers") || "[]");
+  } catch (e) {
+    return [];
+  }
+}
+
+function currentCustomerData() {
+  return {
+    id: document.getElementById("customerName").dataset.customerId || "",
+    name: document.getElementById("customerName").value.trim(),
+    company: document.getElementById("customerCompany").value.trim(),
+    street: document.getElementById("customerStreet").value.trim(),
+    postal: document.getElementById("customerPostal").value.trim(),
+    city: document.getElementById("customerCity").value.trim(),
+    country: document.getElementById("customerCountry").value.trim(),
+    phone: document.getElementById("customerPhone").value.trim(),
+    email: document.getElementById("customerEmail").value.trim()
+  };
+}
+
+function saveCustomer() {
+  const customer = currentCustomerData();
+  if (!customer.name) {
+    alert("Bitte zuerst den Kundennamen eintragen.");
+    return;
+  }
+
+  const customers = getCustomers();
+  const normalizedName = customer.name.toLowerCase();
+  const normalizedEmail = customer.email.toLowerCase();
+
+  let index = customers.findIndex(item =>
+    (customer.id && item.id === customer.id) ||
+    (item.name || "").toLowerCase() === normalizedName &&
+    (item.email || "").toLowerCase() === normalizedEmail
+  );
+
+  if (!customer.id) {
+    customer.id = "customer-" + Date.now();
+  }
+
+  if (index >= 0) customers[index] = customer;
+  else customers.push(customer);
+
+  localStorage.setItem("jbbCustomers", JSON.stringify(customers));
+  document.getElementById("customerName").dataset.customerId = customer.id;
+  alert("Kunde wurde gespeichert.");
+}
+
+function toggleCustomerPanel() {
+  const panel = document.getElementById("customerPanel");
+  const show = panel.style.display === "none" || !panel.style.display;
+  panel.style.display = show ? "block" : "none";
+  if (show) renderCustomers();
+}
+
+function renderCustomers() {
+  const container = document.getElementById("customerList");
+  const query = (document.getElementById("customerSearch")?.value || "").trim().toLowerCase();
+  const customers = getCustomers()
+    .filter(customer => {
+      if (!query) return true;
+      return [
+        customer.name, customer.company, customer.city,
+        customer.country, customer.email, customer.phone
+      ].join(" ").toLowerCase().includes(query);
+    })
+    .sort((a, b) => (a.name || "").localeCompare(b.name || "", "de"));
+
+  if (!customers.length) {
+    container.innerHTML = '<p style="margin:0;color:#666;">Keine passenden Kunden gefunden.</p>';
+    return;
+  }
+
+  container.innerHTML = customers.map(customer => `
+    <div style="display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;padding:10px 0;border-bottom:1px solid #ddd;">
+      <div>
+        <strong>${escapeHtml(customer.name || "")}</strong>
+        ${customer.company ? "<br><span>" + escapeHtml(customer.company) + "</span>" : ""}
+        <br><span style="font-size:12px;color:#555;">
+          ${escapeHtml([customer.postal, customer.city, customer.country].filter(Boolean).join(" · "))}
+        </span>
+      </div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;">
+        <button onclick="selectCustomer('${customer.id}')">Auswählen</button>
+        <button class="secondary" onclick="deleteCustomer('${customer.id}')">Löschen</button>
+      </div>
+    </div>
+  `).join("");
+}
+
+function escapeHtml(value) {
+  return String(value || "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
+function selectCustomer(id) {
+  const customer = getCustomers().find(item => item.id === id);
+  if (!customer) return;
+
+  document.getElementById("customerName").value = customer.name || "";
+  document.getElementById("customerName").dataset.customerId = customer.id || "";
+  document.getElementById("customerCompany").value = customer.company || "";
+  document.getElementById("customerStreet").value = customer.street || "";
+  document.getElementById("customerPostal").value = customer.postal || "";
+  document.getElementById("customerCity").value = customer.city || "";
+  document.getElementById("customerCountry").value = customer.country || "";
+  document.getElementById("customerPhone").value = customer.phone || "";
+  document.getElementById("customerEmail").value = customer.email || "";
+
+  saveData();
+  document.getElementById("customerPanel").style.display = "none";
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+function deleteCustomer(id) {
+  const customers = getCustomers();
+  const customer = customers.find(item => item.id === id);
+  if (!customer) return;
+  if (!confirm("Kunde " + customer.name + " wirklich löschen?")) return;
+
+  localStorage.setItem(
+    "jbbCustomers",
+    JSON.stringify(customers.filter(item => item.id !== id))
+  );
+  renderCustomers();
+}
+
 function collectInvoiceData() {
   const data = {};
   ids.forEach(id => {
@@ -428,6 +620,7 @@ function collectInvoiceData() {
   data.total3 = document.getElementById("total3").value;
   data.subtotal = document.getElementById("subtotal").value;
   data.grandTotal = document.getElementById("grandTotal").value;
+  data.customerId = document.getElementById("customerName").dataset.customerId || "";
   data.archivedAt = new Date().toISOString();
   return data;
 }
@@ -466,7 +659,11 @@ function renderArchive() {
         data.serviceDate || "",
         data.dueDate || "",
         data.grandTotal || "",
-        data.subtotal || ""
+        data.subtotal || "",
+        data.customerName || "",
+        data.customerCompany || "",
+        data.customerCity || "",
+        data.customerEmail || ""
       ].join(" ").toLowerCase();
       return searchable.includes(query);
     })
@@ -482,11 +679,12 @@ function renderArchive() {
   container.innerHTML = entries.map(([number, data]) => {
     const date = data.invoiceDate || "";
     const amount = data.grandTotal || "";
+    const customer = data.customerName || "";
     return `
       <div style="display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;padding:10px 0;border-bottom:1px solid #ddd;">
         <div>
           <strong>${number}</strong><br>
-          <span style="font-size:12px;color:#555;">${date}${amount ? " · " + amount : ""}</span>
+          <span style="font-size:12px;color:#555;">${customer ? escapeHtml(customer) + " · " : ""}${date}${amount ? " · " + amount : ""}</span>
         </div>
         <div style="display:flex;gap:6px;">
           <button onclick="loadArchivedInvoice('${number.replace(/'/g, "\\'")}')">Öffnen</button>
@@ -506,6 +704,7 @@ function loadArchivedInvoice(number) {
     if (id in data) el.value = data[id];
   });
 
+  document.getElementById("customerName").dataset.customerId = data.customerId || "";
   calculate();
   saveData();
   document.getElementById("archivePanel").style.display = "none";
@@ -554,6 +753,7 @@ function clearData() {
     el.value = "";
   });
   document.getElementById("discount").value = "0";
+  document.getElementById("customerName").dataset.customerId = "";
   localStorage.removeItem("jbbInvoice");
   assignInvoiceNumber(true);
   setAutomaticDates(true);
