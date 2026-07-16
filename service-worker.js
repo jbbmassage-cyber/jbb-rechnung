@@ -1,4 +1,4 @@
-const CACHE_NAME = "jbb-rechnung-v23-kunden";
+const CACHE_NAME = "jbb-rechnung-v231-kunden-links";
 const ASSETS = [
   "./",
   "./index.html",

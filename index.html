@@ -200,22 +200,22 @@
   }
 
   #customerHeading {
-    position:absolute; left:49.8%; top:22.95%; width:44%;
+    position:absolute; left:7.4%; top:22.95%; width:39.8%;
     font-size:clamp(6px,0.85vw,10px); font-weight:700; color:#3b2419;
   }
   .customer-field {
-    position:absolute; height:0.92%; min-height:10px;
-    font-size:clamp(6px,0.9vw,10px) !important;
+    position:absolute; height:0.88%; min-height:9px;
+    font-size:clamp(5.5px,0.82vw,9px) !important;
     padding:0 3px !important;
   }
-  #customerName    { left:49.8%; top:23.75%; width:21.5%; }
-  #customerCompany { left:72.0%; top:23.75%; width:21.8%; }
-  #customerStreet  { left:49.8%; top:24.80%; width:44.0%; }
-  #customerPostal  { left:49.8%; top:25.85%; width:9.5%; }
-  #customerCity    { left:60.0%; top:25.85%; width:20.0%; }
-  #customerCountry { left:80.7%; top:25.85%; width:13.1%; }
-  #customerPhone   { left:49.8%; top:26.90%; width:21.5%; }
-  #customerEmail   { left:72.0%; top:26.90%; width:21.8%; }
+  #customerName { left:7.4%; top:23.85%; width:19.3%; }
+  #customerCompany { left:27.4%; top:23.85%; width:19.8%; }
+  #customerStreet { left:7.4%; top:25.00%; width:39.8%; }
+  #customerPostal { left:7.4%; top:26.15%; width:8.3%; }
+  #customerCity { left:16.4%; top:26.15%; width:18.0%; }
+  #customerCountry { left:35.1%; top:26.15%; width:12.1%; }
+  #customerPhone { left:7.4%; top:27.30%; width:19.3%; }
+  #customerEmail { left:27.4%; top:27.30%; width:19.8%; }
 
   @media print {
     #customerHeading { font-size:6.5pt; }
@@ -249,7 +249,7 @@
   <button class="secondary" onclick="exportBackup()">Backup exportieren</button>
   <button class="secondary" onclick="document.getElementById('backupFile').click()">Backup importieren</button>
   <input id="backupFile" type="file" accept=".json,application/json" style="display:none" onchange="importBackup(event)">
-  <p class="hint">Version 2.3 Beta 1: Rechnungsnummer und Datumsangaben werden automatisch vergeben. Kundendaten können gespeichert und wieder ausgewählt werden. Rechnungen können lokal archiviert, durchsucht und als Backup gesichert werden. Alle übrigen Felder antippen, ausfüllen und anschließend „Als PDF speichern / drucken“ wählen. Im Android-Druckdialog „Als PDF speichern“ auswählen.</p>
+  <p class="hint">Version 2.3.1 Beta: Rechnungsnummer und Datumsangaben werden automatisch vergeben. Kundendaten befinden sich unter dem Logo und können gespeichert sowie wieder ausgewählt werden. Rechnungen können lokal archiviert, durchsucht und als Backup gesichert werden. Alle übrigen Felder antippen, ausfüllen und anschließend „Als PDF speichern / drucken“ wählen. Im Android-Druckdialog „Als PDF speichern“ auswählen.</p>
 </div>
 
 
