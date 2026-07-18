@@ -1,4 +1,4 @@
-const CACHE_NAME = "jbb-rechnung-v30-customer-edit-1-preview-r1";
+const CACHE_NAME = "jbb-rechnung-v30-vatnotice-fix-r2";
 const CORE_ASSETS = [
   "./",
   "./index.html"
