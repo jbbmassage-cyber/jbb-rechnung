@@ -20,34 +20,6 @@
   }
   button.secondary { background:#76665d; }
   .hint { width:100%; font-size:12px; color:#555; margin:0; }
-  .view-selector {
-    display:flex; align-items:center; gap:8px; padding:4px 8px;
-    border:1px solid #d8d1cc; border-radius:10px; background:#f7f4f1;
-    font-size:14px; font-weight:700; color:#3b2419;
-  }
-  .view-selector select {
-    border:1px solid #b7aaa2; border-radius:8px; padding:8px 10px;
-    background:#fff; color:#241812; font-weight:700; font-size:14px;
-  }
-  body.print-preview { background:#d8d3ce; }
-  body.print-preview .edit-action { display:none !important; }
-  body.print-preview #customerPanel,
-  body.print-preview #archivePanel { display:none !important; }
-  body.print-preview .viewport { padding:14px 6px 24px; }
-  body.print-preview .sheet {
-    box-shadow:0 3px 18px rgba(0,0,0,.28);
-    background-color:#fff;
-  }
-  body.print-preview .field {
-    border:none !important; background:transparent !important; box-shadow:none !important;
-    outline:none !important; pointer-events:none; caret-color:transparent;
-  }
-  body.print-preview .field::placeholder { color:transparent !important; }
-  body.print-preview #customerHeading { pointer-events:none; }
-  body.print-preview .hint { display:none !important; }
-  .preview-note { display:none; width:100%; font-size:12px; color:#5b4b42; margin:0; }
-  body.print-preview .preview-note { display:block; }
-
   .viewport { overflow:auto; padding:10px; }
   .sheet {
     position:relative;
@@ -250,17 +222,17 @@
 
   /* VERSION 3.0 STABLE – größerer Empfängerbereich, kein Fälligkeitsdatum */
   #customerHeading {
-    left:7.4% !important; top:23.63% !important; width:86.0% !important;
+    left:7.4% !important; top:21.95% !important; width:86.0% !important;
     font-size:clamp(7px,1.0vw,11px) !important; font-weight:700; letter-spacing:.02em;
   }
   #customerLastName {
-    left:7.4% !important; top:24.88% !important; width:27.0% !important; height:1.25% !important;
+    left:7.4% !important; top:23.20% !important; width:27.0% !important; height:1.25% !important;
   }
   #customerFirstName {
-    left:35.2% !important; top:24.88% !important; width:27.0% !important; height:1.25% !important;
+    left:35.2% !important; top:23.20% !important; width:27.0% !important; height:1.25% !important;
   }
   #customerAddress {
-    left:63.0% !important; top:24.53% !important; width:30.8% !important; height:3.15% !important;
+    left:63.0% !important; top:22.85% !important; width:30.8% !important; height:3.15% !important;
     resize:none; line-height:1.25 !important;
   }
   .customer-field {
@@ -287,26 +259,19 @@
 </head>
 <body>
 <div class="toolbar">
-  <label class="view-selector" for="viewMode">Ansicht
-    <select id="viewMode" onchange="setViewMode(this.value)" aria-label="Ansicht auswählen">
-      <option value="edit">Bearbeiten</option>
-      <option value="preview">Druckansicht</option>
-    </select>
-  </label>
   <button onclick="window.print()">Als PDF speichern / drucken</button>
-  <button class="secondary edit-action" onclick="saveData()">Daten speichern</button>
-  <button class="secondary edit-action" onclick="clearData()">Neue Rechnung</button>
-  <button class="secondary edit-action" onclick="archiveInvoice()">Rechnung archivieren</button>
-  <button class="secondary edit-action" onclick="toggleArchive()">Archiv öffnen</button>
+  <button class="secondary" onclick="saveData()">Daten speichern</button>
+  <button class="secondary" onclick="clearData()">Neue Rechnung</button>
+  <button class="secondary" onclick="archiveInvoice()">Rechnung archivieren</button>
+  <button class="secondary" onclick="toggleArchive()">Archiv öffnen</button>
 
-  <button class="secondary edit-action" onclick="saveCustomer()">Kunde speichern</button>
-  <button class="secondary edit-action" onclick="toggleCustomerPanel()">Kunde auswählen</button>
+  <button class="secondary" onclick="saveCustomer()">Kunde speichern</button>
+  <button class="secondary" onclick="toggleCustomerPanel()">Kunde auswählen</button>
 
-  <button class="secondary edit-action" onclick="exportBackup()">Backup exportieren</button>
-  <button class="secondary edit-action" onclick="document.getElementById('backupFile').click()">Backup importieren</button>
+  <button class="secondary" onclick="exportBackup()">Backup exportieren</button>
+  <button class="secondary" onclick="document.getElementById('backupFile').click()">Backup importieren</button>
   <input id="backupFile" type="file" accept=".json,application/json" style="display:none" onchange="importBackup(event)">
-  <p class="preview-note">Druckansicht aktiv: So wird die Rechnung beim Drucken oder Speichern als PDF dargestellt. Zum Ändern wieder „Bearbeiten“ auswählen.</p>
-  <p class="hint">Version 3.0 Stable: Rechnungsnummer, Rechnungsdatum und Leistungsdatum werden automatisch vergeben. Das Fälligkeitsdatum wurde entfernt; der größere Empfängerbereich zeigt Name, Vorname sowie zwei Adresszeilen (Anschrift und PLZ/Ort) übersichtlich an. Im Kundenarchiv bleiben Firma, Telefon, E-Mail, Land und weitere Adressdaten vollständig gespeichert. Rechnungen können lokal archiviert, durchsucht und als Backup gesichert werden. Alle übrigen Felder antippen, ausfüllen und anschließend „Als PDF speichern / drucken“ wählen. Im Android-Druckdialog „Als PDF speichern“ auswählen.</p>
+  <p class="hint">Version 3.0 Stable: Rechnungsnummer, Rechnungsdatum und Leistungsdatum werden automatisch vergeben. Das Fälligkeitsdatum wurde entfernt; der größere Empfängerbereich zeigt Name, Vorname und Adresse übersichtlich an. Im Kundenarchiv bleiben Firma, Telefon, E-Mail, Land und weitere Adressdaten vollständig gespeichert. Rechnungen können lokal archiviert, durchsucht und als Backup gesichert werden. Alle übrigen Felder antippen, ausfüllen und anschließend „Als PDF speichern / drucken“ wählen. Im Android-Druckdialog „Als PDF speichern“ auswählen.</p>
 </div>
 
 
@@ -317,8 +282,6 @@
   </div>
   
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px;">
-    <input id="archiveCustomerLastName" placeholder="Name" style="padding:9px;">
-    <input id="archiveCustomerFirstName" placeholder="Vorname" style="padding:9px;">
     <input id="archiveCustomerCompany" placeholder="Firma (optional)" style="padding:9px;">
     <input id="archiveCustomerPhone" placeholder="Telefon (optional)" inputmode="tel" style="padding:9px;">
     <input id="archiveCustomerStreet" placeholder="Straße und Hausnummer" style="padding:9px;grid-column:1 / -1;">
@@ -326,10 +289,6 @@
     <input id="archiveCustomerCity" placeholder="Ort" style="padding:9px;">
     <input id="archiveCustomerCountry" placeholder="Land" style="padding:9px;">
     <input id="archiveCustomerEmail" placeholder="E-Mail (optional)" inputmode="email" style="padding:9px;">
-  </div>
-  <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;">
-    <button onclick="saveCustomerFromArchive()">Kunde speichern</button>
-    <button class="secondary" onclick="newCustomerForm()">Neuer Kunde</button>
   </div>
 
   <input id="customerSearch" type="search" placeholder="Kunden nach Name, Firma, Ort oder E-Mail suchen"
@@ -361,7 +320,7 @@
   <div id="customerHeading">KUNDENDATEN / CUSTOMER</div>
   <input class="field customer-field" id="customerLastName" placeholder="Name">
   <input class="field customer-field" id="customerFirstName" placeholder="Vorname">
-  <textarea class="field customer-field" id="customerAddress" placeholder="Anschrift&#10;PLZ und Ort" rows="2"></textarea>
+  <textarea class="field customer-field" id="customerAddress" placeholder="Adresse" rows="2"></textarea>
 
 
   <input class="field money qty" id="qty1" type="number" min="0" step="1" inputmode="decimal">
@@ -562,11 +521,11 @@ function currentCustomerData() {
 }
 
 function customerAddressText(customer) {
-  // Auf der Rechnung werden bewusst genau zwei Adresszeilen angezeigt.
   return [
     customer.street || "",
-    [customer.postal || "", customer.city || ""].filter(Boolean).join(" ")
-  ].join("\n").replace(/^\n|\n$/g, "");
+    [customer.postal || "", customer.city || ""].filter(Boolean).join(" "),
+    customer.country || ""
+  ].filter(Boolean).join("\n");
 }
 
 function saveCustomer() {
@@ -612,10 +571,6 @@ function toggleCustomerPanel() {
 
 function loadArchiveCustomerFields(customer) {
   const selected = customer || {};
-  const panel = document.getElementById("customerPanel");
-  panel.dataset.editingCustomerId = selected.id || "";
-  document.getElementById("archiveCustomerLastName").value = selected.lastName || "";
-  document.getElementById("archiveCustomerFirstName").value = selected.firstName || "";
   document.getElementById("archiveCustomerCompany").value = selected.company || "";
   document.getElementById("archiveCustomerStreet").value = selected.street || "";
   document.getElementById("archiveCustomerPostal").value = selected.postal || "";
@@ -658,7 +613,6 @@ function renderCustomers() {
       </div>
       <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;">
         <button onclick="selectCustomer('${customer.id}')">Auswählen</button>
-        <button class="secondary" onclick="editCustomer('${customer.id}')">Bearbeiten</button>
         <button class="secondary" onclick="deleteCustomer('${customer.id}')">Löschen</button>
       </div>
     </div>
@@ -672,57 +626,6 @@ function escapeHtml(value) {
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#039;");
-}
-
-
-function editCustomer(id) {
-  const customer = getCustomers().find(item => item.id === id);
-  if (!customer) return;
-  loadArchiveCustomerFields(customer);
-  document.getElementById("archiveCustomerLastName").focus();
-}
-
-function newCustomerForm() {
-  loadArchiveCustomerFields({});
-  document.getElementById("archiveCustomerLastName").focus();
-}
-
-function saveCustomerFromArchive() {
-  const panel = document.getElementById("customerPanel");
-  const customer = {
-    id: panel.dataset.editingCustomerId || "",
-    lastName: document.getElementById("archiveCustomerLastName").value.trim(),
-    firstName: document.getElementById("archiveCustomerFirstName").value.trim(),
-    company: document.getElementById("archiveCustomerCompany").value.trim(),
-    street: document.getElementById("archiveCustomerStreet").value.trim(),
-    postal: document.getElementById("archiveCustomerPostal").value.trim(),
-    city: document.getElementById("archiveCustomerCity").value.trim(),
-    country: document.getElementById("archiveCustomerCountry").value.trim(),
-    phone: document.getElementById("archiveCustomerPhone").value.trim(),
-    email: document.getElementById("archiveCustomerEmail").value.trim()
-  };
-
-  if (!customer.lastName || !customer.firstName) {
-    alert("Bitte Vorname und Name eintragen.");
-    return;
-  }
-
-  const customers = getCustomers();
-  let index = customers.findIndex(item => item.id === customer.id);
-  if (!customer.id) customer.id = "customer-" + Date.now();
-  if (index >= 0) customers[index] = customer;
-  else customers.push(customer);
-  localStorage.setItem("jbbCustomers", JSON.stringify(customers));
-
-  // Den gespeicherten Kunden zugleich in die aktuelle Rechnung übernehmen.
-  document.getElementById("customerLastName").value = customer.lastName;
-  document.getElementById("customerFirstName").value = customer.firstName;
-  document.getElementById("customerLastName").dataset.customerId = customer.id;
-  document.getElementById("customerAddress").value = customerAddressText(customer);
-  panel.dataset.editingCustomerId = customer.id;
-  saveData();
-  renderCustomers();
-  alert("Kundendaten wurden gespeichert und können ausgewählt werden.");
 }
 
 function selectCustomer(id) {
@@ -861,18 +764,6 @@ function deleteArchivedInvoice(number) {
   renderArchive();
 }
 
-
-function setViewMode(mode) {
-  const preview = mode === "preview";
-  document.body.classList.toggle("print-preview", preview);
-  document.getElementById("viewMode").value = preview ? "preview" : "edit";
-  if (preview) {
-    document.getElementById("customerPanel").style.display = "none";
-    document.getElementById("archivePanel").style.display = "none";
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  }
-}
-
 function saveData() {
   const data = {};
   ids.forEach(id => {
@@ -919,22 +810,11 @@ calculate();
 
 <script>
 if ("serviceWorker" in navigator) {
-  window.addEventListener("load", async function () {
-    try {
-      const registration = await navigator.serviceWorker.register("./service-worker.js?v=30-preview-r1", {
-        updateViaCache: "none"
+  window.addEventListener("load", function () {
+    navigator.serviceWorker.register("./service-worker.js")
+      .catch(function (error) {
+        console.warn("Service Worker konnte nicht registriert werden:", error);
       });
-      await registration.update();
-
-      let reloading = false;
-      navigator.serviceWorker.addEventListener("controllerchange", function () {
-        if (reloading) return;
-        reloading = true;
-        window.location.reload();
-      });
-    } catch (error) {
-      console.warn("Service Worker konnte nicht registriert werden:", error);
-    }
   });
 }
 </script>
