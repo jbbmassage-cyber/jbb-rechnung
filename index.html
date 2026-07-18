@@ -810,11 +810,22 @@ calculate();
 
 <script>
 if ("serviceWorker" in navigator) {
-  window.addEventListener("load", function () {
-    navigator.serviceWorker.register("./service-worker.js")
-      .catch(function (error) {
-        console.warn("Service Worker konnte nicht registriert werden:", error);
+  window.addEventListener("load", async function () {
+    try {
+      const registration = await navigator.serviceWorker.register("./service-worker.js?v=30-5mm-r2", {
+        updateViaCache: "none"
       });
+      await registration.update();
+
+      let reloading = false;
+      navigator.serviceWorker.addEventListener("controllerchange", function () {
+        if (reloading) return;
+        reloading = true;
+        window.location.reload();
+      });
+    } catch (error) {
+      console.warn("Service Worker konnte nicht registriert werden:", error);
+    }
   });
 }
 </script>

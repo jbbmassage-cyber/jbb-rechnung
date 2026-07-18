@@ -1,14 +1,13 @@
-const CACHE_NAME = "jbb-rechnung-v30-stable";
-const ASSETS = [
+const CACHE_NAME = "jbb-rechnung-v30-5mm-r2";
+const CORE_ASSETS = [
   "./",
-  "./index.html",
-  "./manifest.webmanifest",
-  "./icon-192.png",
-  "./icon-512.png"
+  "./index.html"
 ];
 
 self.addEventListener("install", event => {
-  event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(ASSETS)));
+  event.waitUntil(
+    caches.open(CACHE_NAME).then(cache => cache.addAll(CORE_ASSETS))
+  );
   self.skipWaiting();
 });
 
@@ -22,7 +21,35 @@ self.addEventListener("activate", event => {
 });
 
 self.addEventListener("fetch", event => {
+  if (event.request.method !== "GET") return;
+
+  const request = event.request;
+  const isPageRequest = request.mode === "navigate" ||
+    new URL(request.url).pathname.endsWith("/index.html");
+
+  if (isPageRequest) {
+    event.respondWith(
+      fetch(request, { cache: "no-store" })
+        .then(response => {
+          const copy = response.clone();
+          caches.open(CACHE_NAME).then(cache => cache.put("./index.html", copy));
+          return response;
+        })
+        .catch(() => caches.match("./index.html"))
+    );
+    return;
+  }
+
   event.respondWith(
-    caches.match(event.request).then(cached => cached || fetch(event.request))
+    caches.match(request).then(cached => {
+      const network = fetch(request).then(response => {
+        if (response && response.ok) {
+          const copy = response.clone();
+          caches.open(CACHE_NAME).then(cache => cache.put(request, copy));
+        }
+        return response;
+      });
+      return cached || network;
+    })
   );
 });
