@@ -273,15 +273,38 @@
   }
 
 
-  /* V3.0 Final: §19-Hinweis zuverlässig über dem Hintergrund darstellen */
+  /* V3.0 Final R4: gesamten unlesbaren Hintergrund-Textstreifen abdecken und §19-Hinweis sauber neu zeichnen */
   #vatNoticeFix {
-    position:absolute; left:48.4%; top:72.55%; width:45.2%; min-height:3.55%; z-index:30;
-    display:flex; flex-direction:column; justify-content:center;
-    padding:0.35% 0.7%; background:#f7f2ee; color:#3b302a;
-    font-size:clamp(6px,0.83vw,9.2px); line-height:1.28; text-align:left; border:0;
+    position:absolute !important;
+    left:6.2% !important;
+    top:71.15% !important;
+    width:87.6% !important;
+    height:4.85% !important;
+    z-index:50 !important;
+    display:flex !important;
+    flex-direction:column !important;
+    align-items:center !important;
+    justify-content:center !important;
+    padding:0.50% 1.2% !important;
+    margin:0 !important;
+    overflow:hidden !important;
+    background:#fbf9f6 !important;
+    color:#3b302a !important;
+    font-size:clamp(6px,0.82vw,9.2px) !important;
+    line-height:1.35 !important;
+    text-align:center !important;
+    border:0 !important;
+    box-shadow:none !important;
   }
-  body.print-preview #vatNoticeFix { background:#f7f2ee !important; }
-  @media print { #vatNoticeFix { background:#f7f2ee !important; font-size:6.7pt !important; } }
+  body.print-preview #vatNoticeFix { background:#fbf9f6 !important; }
+  @media print {
+    #vatNoticeFix {
+      background:#fbf9f6 !important;
+      font-size:6.7pt !important;
+      top:71.15% !important;
+      height:4.85% !important;
+    }
+  }
 
 </style>
 
@@ -937,7 +960,7 @@ calculate();
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", async function () {
     try {
-      const registration = await navigator.serviceWorker.register("./service-worker.js?v=30-preview-r1", {
+      const registration = await navigator.serviceWorker.register("./service-worker.js?v=30-taxfix-r4", {
         updateViaCache: "none"
       });
       await registration.update();
