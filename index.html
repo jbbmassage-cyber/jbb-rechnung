@@ -20,6 +20,34 @@
   }
   button.secondary { background:#76665d; }
   .hint { width:100%; font-size:12px; color:#555; margin:0; }
+  .view-selector {
+    display:flex; align-items:center; gap:8px; padding:4px 8px;
+    border:1px solid #d8d1cc; border-radius:10px; background:#f7f4f1;
+    font-size:14px; font-weight:700; color:#3b2419;
+  }
+  .view-selector select {
+    border:1px solid #b7aaa2; border-radius:8px; padding:8px 10px;
+    background:#fff; color:#241812; font-weight:700; font-size:14px;
+  }
+  body.print-preview { background:#d8d3ce; }
+  body.print-preview .edit-action { display:none !important; }
+  body.print-preview #customerPanel,
+  body.print-preview #archivePanel { display:none !important; }
+  body.print-preview .viewport { padding:14px 6px 24px; }
+  body.print-preview .sheet {
+    box-shadow:0 3px 18px rgba(0,0,0,.28);
+    background-color:#fff;
+  }
+  body.print-preview .field {
+    border:none !important; background:transparent !important; box-shadow:none !important;
+    outline:none !important; pointer-events:none; caret-color:transparent;
+  }
+  body.print-preview .field::placeholder { color:transparent !important; }
+  body.print-preview #customerHeading { pointer-events:none; }
+  body.print-preview .hint { display:none !important; }
+  .preview-note { display:none; width:100%; font-size:12px; color:#5b4b42; margin:0; }
+  body.print-preview .preview-note { display:block; }
+
   .viewport { overflow:auto; padding:10px; }
   .sheet {
     position:relative;
@@ -259,18 +287,25 @@
 </head>
 <body>
 <div class="toolbar">
+  <label class="view-selector" for="viewMode">Ansicht
+    <select id="viewMode" onchange="setViewMode(this.value)" aria-label="Ansicht auswählen">
+      <option value="edit">Bearbeiten</option>
+      <option value="preview">Druckansicht</option>
+    </select>
+  </label>
   <button onclick="window.print()">Als PDF speichern / drucken</button>
-  <button class="secondary" onclick="saveData()">Daten speichern</button>
-  <button class="secondary" onclick="clearData()">Neue Rechnung</button>
-  <button class="secondary" onclick="archiveInvoice()">Rechnung archivieren</button>
-  <button class="secondary" onclick="toggleArchive()">Archiv öffnen</button>
+  <button class="secondary edit-action" onclick="saveData()">Daten speichern</button>
+  <button class="secondary edit-action" onclick="clearData()">Neue Rechnung</button>
+  <button class="secondary edit-action" onclick="archiveInvoice()">Rechnung archivieren</button>
+  <button class="secondary edit-action" onclick="toggleArchive()">Archiv öffnen</button>
 
-  <button class="secondary" onclick="saveCustomer()">Kunde speichern</button>
-  <button class="secondary" onclick="toggleCustomerPanel()">Kunde auswählen</button>
+  <button class="secondary edit-action" onclick="saveCustomer()">Kunde speichern</button>
+  <button class="secondary edit-action" onclick="toggleCustomerPanel()">Kunde auswählen</button>
 
-  <button class="secondary" onclick="exportBackup()">Backup exportieren</button>
-  <button class="secondary" onclick="document.getElementById('backupFile').click()">Backup importieren</button>
+  <button class="secondary edit-action" onclick="exportBackup()">Backup exportieren</button>
+  <button class="secondary edit-action" onclick="document.getElementById('backupFile').click()">Backup importieren</button>
   <input id="backupFile" type="file" accept=".json,application/json" style="display:none" onchange="importBackup(event)">
+  <p class="preview-note">Druckansicht aktiv: So wird die Rechnung beim Drucken oder Speichern als PDF dargestellt. Zum Ändern wieder „Bearbeiten“ auswählen.</p>
   <p class="hint">Version 3.0 Stable: Rechnungsnummer, Rechnungsdatum und Leistungsdatum werden automatisch vergeben. Das Fälligkeitsdatum wurde entfernt; der größere Empfängerbereich zeigt Name, Vorname und Adresse übersichtlich an. Im Kundenarchiv bleiben Firma, Telefon, E-Mail, Land und weitere Adressdaten vollständig gespeichert. Rechnungen können lokal archiviert, durchsucht und als Backup gesichert werden. Alle übrigen Felder antippen, ausfüllen und anschließend „Als PDF speichern / drucken“ wählen. Im Android-Druckdialog „Als PDF speichern“ auswählen.</p>
 </div>
 
@@ -764,6 +799,18 @@ function deleteArchivedInvoice(number) {
   renderArchive();
 }
 
+
+function setViewMode(mode) {
+  const preview = mode === "preview";
+  document.body.classList.toggle("print-preview", preview);
+  document.getElementById("viewMode").value = preview ? "preview" : "edit";
+  if (preview) {
+    document.getElementById("customerPanel").style.display = "none";
+    document.getElementById("archivePanel").style.display = "none";
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+}
+
 function saveData() {
   const data = {};
   ids.forEach(id => {
@@ -812,7 +859,7 @@ calculate();
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", async function () {
     try {
-      const registration = await navigator.serviceWorker.register("./service-worker.js?v=30-5mm-r2", {
+      const registration = await navigator.serviceWorker.register("./service-worker.js?v=30-preview-r1", {
         updateViaCache: "none"
       });
       await registration.update();
