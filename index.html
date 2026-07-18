@@ -306,7 +306,7 @@
   <button class="secondary edit-action" onclick="document.getElementById('backupFile').click()">Backup importieren</button>
   <input id="backupFile" type="file" accept=".json,application/json" style="display:none" onchange="importBackup(event)">
   <p class="preview-note">Druckansicht aktiv: So wird die Rechnung beim Drucken oder Speichern als PDF dargestellt. Zum Ändern wieder „Bearbeiten“ auswählen.</p>
-  <p class="hint">Version 3.0 Stable: Rechnungsnummer, Rechnungsdatum und Leistungsdatum werden automatisch vergeben. Das Fälligkeitsdatum wurde entfernt; der größere Empfängerbereich zeigt Name, Vorname und Adresse übersichtlich an. Im Kundenarchiv bleiben Firma, Telefon, E-Mail, Land und weitere Adressdaten vollständig gespeichert. Rechnungen können lokal archiviert, durchsucht und als Backup gesichert werden. Alle übrigen Felder antippen, ausfüllen und anschließend „Als PDF speichern / drucken“ wählen. Im Android-Druckdialog „Als PDF speichern“ auswählen.</p>
+  <p class="hint">Version 3.0 Stable: Rechnungsnummer, Rechnungsdatum und Leistungsdatum werden automatisch vergeben. Das Fälligkeitsdatum wurde entfernt; der größere Empfängerbereich zeigt Name, Vorname sowie zwei Adresszeilen (Anschrift und PLZ/Ort) übersichtlich an. Im Kundenarchiv bleiben Firma, Telefon, E-Mail, Land und weitere Adressdaten vollständig gespeichert. Rechnungen können lokal archiviert, durchsucht und als Backup gesichert werden. Alle übrigen Felder antippen, ausfüllen und anschließend „Als PDF speichern / drucken“ wählen. Im Android-Druckdialog „Als PDF speichern“ auswählen.</p>
 </div>
 
 
@@ -317,6 +317,8 @@
   </div>
   
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px;">
+    <input id="archiveCustomerLastName" placeholder="Name" style="padding:9px;">
+    <input id="archiveCustomerFirstName" placeholder="Vorname" style="padding:9px;">
     <input id="archiveCustomerCompany" placeholder="Firma (optional)" style="padding:9px;">
     <input id="archiveCustomerPhone" placeholder="Telefon (optional)" inputmode="tel" style="padding:9px;">
     <input id="archiveCustomerStreet" placeholder="Straße und Hausnummer" style="padding:9px;grid-column:1 / -1;">
@@ -324,6 +326,10 @@
     <input id="archiveCustomerCity" placeholder="Ort" style="padding:9px;">
     <input id="archiveCustomerCountry" placeholder="Land" style="padding:9px;">
     <input id="archiveCustomerEmail" placeholder="E-Mail (optional)" inputmode="email" style="padding:9px;">
+  </div>
+  <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;">
+    <button onclick="saveCustomerFromArchive()">Kunde speichern</button>
+    <button class="secondary" onclick="newCustomerForm()">Neuer Kunde</button>
   </div>
 
   <input id="customerSearch" type="search" placeholder="Kunden nach Name, Firma, Ort oder E-Mail suchen"
@@ -355,7 +361,7 @@
   <div id="customerHeading">KUNDENDATEN / CUSTOMER</div>
   <input class="field customer-field" id="customerLastName" placeholder="Name">
   <input class="field customer-field" id="customerFirstName" placeholder="Vorname">
-  <textarea class="field customer-field" id="customerAddress" placeholder="Adresse" rows="2"></textarea>
+  <textarea class="field customer-field" id="customerAddress" placeholder="Anschrift&#10;PLZ und Ort" rows="2"></textarea>
 
 
   <input class="field money qty" id="qty1" type="number" min="0" step="1" inputmode="decimal">
@@ -556,11 +562,11 @@ function currentCustomerData() {
 }
 
 function customerAddressText(customer) {
+  // Auf der Rechnung werden bewusst genau zwei Adresszeilen angezeigt.
   return [
     customer.street || "",
-    [customer.postal || "", customer.city || ""].filter(Boolean).join(" "),
-    customer.country || ""
-  ].filter(Boolean).join("\n");
+    [customer.postal || "", customer.city || ""].filter(Boolean).join(" ")
+  ].join("\n").replace(/^\n|\n$/g, "");
 }
 
 function saveCustomer() {
@@ -606,6 +612,10 @@ function toggleCustomerPanel() {
 
 function loadArchiveCustomerFields(customer) {
   const selected = customer || {};
+  const panel = document.getElementById("customerPanel");
+  panel.dataset.editingCustomerId = selected.id || "";
+  document.getElementById("archiveCustomerLastName").value = selected.lastName || "";
+  document.getElementById("archiveCustomerFirstName").value = selected.firstName || "";
   document.getElementById("archiveCustomerCompany").value = selected.company || "";
   document.getElementById("archiveCustomerStreet").value = selected.street || "";
   document.getElementById("archiveCustomerPostal").value = selected.postal || "";
@@ -648,6 +658,7 @@ function renderCustomers() {
       </div>
       <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;">
         <button onclick="selectCustomer('${customer.id}')">Auswählen</button>
+        <button class="secondary" onclick="editCustomer('${customer.id}')">Bearbeiten</button>
         <button class="secondary" onclick="deleteCustomer('${customer.id}')">Löschen</button>
       </div>
     </div>
@@ -661,6 +672,57 @@ function escapeHtml(value) {
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#039;");
+}
+
+
+function editCustomer(id) {
+  const customer = getCustomers().find(item => item.id === id);
+  if (!customer) return;
+  loadArchiveCustomerFields(customer);
+  document.getElementById("archiveCustomerLastName").focus();
+}
+
+function newCustomerForm() {
+  loadArchiveCustomerFields({});
+  document.getElementById("archiveCustomerLastName").focus();
+}
+
+function saveCustomerFromArchive() {
+  const panel = document.getElementById("customerPanel");
+  const customer = {
+    id: panel.dataset.editingCustomerId || "",
+    lastName: document.getElementById("archiveCustomerLastName").value.trim(),
+    firstName: document.getElementById("archiveCustomerFirstName").value.trim(),
+    company: document.getElementById("archiveCustomerCompany").value.trim(),
+    street: document.getElementById("archiveCustomerStreet").value.trim(),
+    postal: document.getElementById("archiveCustomerPostal").value.trim(),
+    city: document.getElementById("archiveCustomerCity").value.trim(),
+    country: document.getElementById("archiveCustomerCountry").value.trim(),
+    phone: document.getElementById("archiveCustomerPhone").value.trim(),
+    email: document.getElementById("archiveCustomerEmail").value.trim()
+  };
+
+  if (!customer.lastName || !customer.firstName) {
+    alert("Bitte Vorname und Name eintragen.");
+    return;
+  }
+
+  const customers = getCustomers();
+  let index = customers.findIndex(item => item.id === customer.id);
+  if (!customer.id) customer.id = "customer-" + Date.now();
+  if (index >= 0) customers[index] = customer;
+  else customers.push(customer);
+  localStorage.setItem("jbbCustomers", JSON.stringify(customers));
+
+  // Den gespeicherten Kunden zugleich in die aktuelle Rechnung übernehmen.
+  document.getElementById("customerLastName").value = customer.lastName;
+  document.getElementById("customerFirstName").value = customer.firstName;
+  document.getElementById("customerLastName").dataset.customerId = customer.id;
+  document.getElementById("customerAddress").value = customerAddressText(customer);
+  panel.dataset.editingCustomerId = customer.id;
+  saveData();
+  renderCustomers();
+  alert("Kundendaten wurden gespeichert und können ausgewählt werden.");
 }
 
 function selectCustomer(id) {
