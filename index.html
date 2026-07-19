@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
-<title>JBB Rechnungs-App 4.0 – Schritt 7.3</title>
+<title>JBB Rechnungs-App 4.0 – Schritt 7.4</title>
 <style>
   :root { --sheet-w: 1000; --sheet-h: 1448; }
   * { box-sizing: border-box; }
@@ -889,6 +889,96 @@ body.print-preview .invoice-meta input[type="date"]::-webkit-calendar-picker-ind
   }
 }
 
+
+/* Schritt 7.4 – Datumsfelder: Kalender links, Text rechts, Druck nur Text */
+.invoice-meta-row{
+  grid-template-columns:1fr 46% !important;
+  column-gap:2.2% !important;
+}
+.date-field-wrap{
+  position:relative;
+  width:100%;
+  min-width:0;
+}
+.date-field-wrap .field{
+  position:static !important;
+}
+.invoice-meta #invoiceNumber,
+.invoice-meta #invoiceDate,
+.invoice-meta #serviceDate{
+  width:100% !important;
+  min-width:0 !important;
+  box-sizing:border-box !important;
+  text-align:right !important;
+  direction:ltr !important;
+  white-space:nowrap !important;
+  overflow:visible !important;
+  text-overflow:clip !important;
+  font-variant-numeric:tabular-nums;
+}
+.invoice-meta #invoiceDate,
+.invoice-meta #serviceDate{
+  padding:.16em .34em .16em 2.05em !important;
+  font-size:clamp(7.8px,1.08vw,12px) !important;
+}
+.invoice-meta #invoiceNumber{
+  padding:.16em .34em !important;
+  font-size:clamp(8.2px,1.18vw,13px) !important;
+}
+
+/* Kalender-Button links */
+.invoice-meta input[type="date"]::-webkit-calendar-picker-indicator{
+  position:absolute;
+  left:.28em;
+  right:auto;
+  top:50%;
+  transform:translateY(-50%);
+  margin:0;
+  opacity:.78;
+  cursor:pointer;
+}
+.invoice-meta input[type="date"]::-webkit-datetime-edit{
+  display:flex;
+  justify-content:flex-end;
+  text-align:right;
+  width:100%;
+}
+.invoice-meta input[type="date"]::-webkit-datetime-edit-fields-wrapper{
+  margin-left:auto;
+  text-align:right;
+}
+
+/* Textdarstellung für Druckansicht/PDF */
+.date-print-text{
+  display:none;
+  width:100%;
+  box-sizing:border-box;
+  padding:.16em .34em;
+  border-bottom:1px solid #d2ccc7;
+  color:#322923;
+  font-family:Arial,sans-serif;
+  font-size:clamp(7.8px,1.08vw,12px);
+  line-height:1.25;
+  text-align:right;
+  white-space:nowrap;
+  font-variant-numeric:tabular-nums;
+}
+body.print-preview .date-field-wrap input[type="date"]{
+  display:none !important;
+}
+body.print-preview .date-print-text{
+  display:block !important;
+}
+@media print{
+  .date-field-wrap input[type="date"]{
+    display:none !important;
+  }
+  .date-print-text{
+    display:block !important;
+    font-size:8pt !important;
+  }
+}
+
 </style>
 
 <link rel="manifest" href="manifest.webmanifest">
@@ -923,7 +1013,7 @@ body.print-preview .invoice-meta input[type="date"]::-webkit-calendar-picker-ind
   <button class="secondary edit-action" onclick="document.getElementById('backupFile').click()">Backup importieren</button>
   <input id="backupFile" type="file" accept=".json,application/json" style="display:none" onchange="importBackup(event)">
   <p class="preview-note">Druckansicht aktiv: So wird die Rechnung beim Drucken oder Speichern als PDF dargestellt. Zum Ändern wieder „Bearbeiten“ auswählen.</p>
-  <p class="hint">Version 4.0 – Schritt 7.3: Engere Kundendatenzeilen, vollständig lesbare und rechtsbündige Rechnungs- und Datumsfelder sowie links angeordnete, in der Druckansicht ausgeblendete Kalenderauswahl.</p>
+  <p class="hint">Version 4.0 – Schritt 7.4: Kalenderauswahl links, Datum rechtsbündig, vergrößerte Datumsfelder und reine Textdarstellung in Druckansicht und PDF.</p>
 </div>
 
 
@@ -1019,11 +1109,11 @@ body.print-preview .invoice-meta input[type="date"]::-webkit-calendar-picker-ind
     </div>
     <div class="invoice-meta-row">
       <label for="invoiceDate">Ausstellungsdatum / Issue date</label>
-      <input class="field" id="invoiceDate" type="date" aria-label="Ausstellungsdatum">
+      <div class="date-field-wrap"><input class="field" id="invoiceDate" type="date" aria-label="Ausstellungsdatum"><span class="date-print-text" id="invoiceDatePrint"></span></div>
     </div>
     <div class="invoice-meta-row">
       <label for="serviceDate">Leistungsdatum / Service date</label>
-      <input class="field" id="serviceDate" type="date" aria-label="Leistungsdatum">
+      <div class="date-field-wrap"><input class="field" id="serviceDate" type="date" aria-label="Leistungsdatum"><span class="date-print-text" id="serviceDatePrint"></span></div>
     </div>
   </section>
   <section class="business-base customer-block" aria-label="Kundendaten">
@@ -1149,6 +1239,26 @@ document.getElementById("invoiceDate").addEventListener("change", function () {
   }
 });
 
+
+function formatDateForDisplay(value) {
+  if (!value) return "";
+  const match = String(value).match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  return match ? match[3] + "." + match[2] + "." + match[1] : value;
+}
+
+function updateDatePrintTexts() {
+  const invoiceDate = document.getElementById("invoiceDate");
+  const serviceDate = document.getElementById("serviceDate");
+  const invoiceDatePrint = document.getElementById("invoiceDatePrint");
+  const serviceDatePrint = document.getElementById("serviceDatePrint");
+
+  if (invoiceDatePrint) invoiceDatePrint.textContent = formatDateForDisplay(invoiceDate?.value || "");
+  if (serviceDatePrint) serviceDatePrint.textContent = formatDateForDisplay(serviceDate?.value || "");
+}
+
+document.getElementById("invoiceDate").addEventListener("change", updateDatePrintTexts);
+document.getElementById("serviceDate").addEventListener("change", updateDatePrintTexts);
+
 function formatDateForInput(date) {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, "0");
@@ -1171,6 +1281,7 @@ function setAutomaticDates(force) {
 
   if (force || !invoiceField.value) invoiceField.value = today;
   if (force || !serviceField.value) serviceField.value = today;
+  updateDatePrintTexts();
 }
 
 function invoiceYear() {
@@ -1704,6 +1815,7 @@ function loadData() {
   } catch(e) {}
   setAutomaticDates(true);
   ensureValidInvoiceNumber();
+  updateDatePrintTexts();
   calculate();
 }
 function clearData() {
@@ -1720,6 +1832,7 @@ function clearData() {
   calculate();
 }
 loadData();
+updateDatePrintTexts();
 calculate();
 </script>
 
@@ -1727,7 +1840,7 @@ calculate();
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", async function () {
     try {
-      const registration = await navigator.serviceWorker.register("./service-worker.js?v=40-step7-3-date-align-r1", {
+      const registration = await navigator.serviceWorker.register("./service-worker.js?v=40-step7-4-date-print-r1", {
         updateViaCache: "none"
       });
       await registration.update();
