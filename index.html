@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
-<title>JBB Rechnungs-App 4.0 – Schritt 8.4</title>
+<title>JBB Rechnungs-App 4.0 – Schritt 8.5</title>
 <style>
   :root { --sheet-w: 1000; --sheet-h: 1448; }
   * { box-sizing: border-box; }
@@ -1418,7 +1418,7 @@ body.print-preview .date-print-text{
   <span class="security-status edit-action">🔒 Verschlüsselt</span>
   <input id="backupFile" type="file" accept=".json,application/json" style="display:none" onchange="importBackup(event)">
   <p class="preview-note">Druckansicht aktiv: So wird die Rechnung beim Drucken oder Speichern als PDF dargestellt. Zum Ändern wieder „Bearbeiten“ auswählen.</p>
-  <p class="hint">Version 4.0 – Schritt 8.4: Der Summenblock bleibt direkt an der Leistungstabelle. Kleinunternehmerregelung und „Vielen Dank“ bleiben links untereinander. Alle übrigen Bereiche bleiben unverändert.</p>
+  <p class="hint">Version 4.0 – Schritt 8.5: Automatische eindeutige Rechnungsnummer im Format JJJJ-0001 mit selbstständigem Jahreswechsel. Alle übrigen Bereiche bleiben unverändert.</p>
 </div>
 
 
@@ -1684,6 +1684,7 @@ document.getElementById("invoiceDate").addEventListener("change", function () {
   const current = document.getElementById("invoiceNumber").value;
   const selectedYear = invoiceYear();
   if (!current.startsWith(String(selectedYear) + "-")) {
+    document.body.dataset.loadedArchiveNumber = "";
     document.getElementById("invoiceNumber").value = "";
     assignInvoiceNumber(false);
   }
@@ -1741,7 +1742,7 @@ function invoiceYear() {
 }
 
 function formatInvoiceNumber(year, sequence) {
-  return year + "-" + String(sequence).padStart(3, "0");
+  return year + "-" + String(sequence).padStart(4, "0");
 }
 
 function highestArchivedSequence(year) {
@@ -1756,6 +1757,19 @@ function highestArchivedSequence(year) {
   return highest;
 }
 
+function invoiceNumberExists(number) {
+  const archive = JSON.parse(secureStorage.getItem("jbbInvoiceArchive") || "{}");
+  return Object.prototype.hasOwnProperty.call(archive, number);
+}
+
+function nextAvailableInvoiceSequence(year, startAt) {
+  let sequence = Math.max(0, Number(startAt) || 0);
+  do {
+    sequence += 1;
+  } while (invoiceNumberExists(formatInvoiceNumber(year, sequence)));
+  return sequence;
+}
+
 function assignInvoiceNumber(increment) {
   const year = invoiceYear();
   const counterKey = "jbbInvoiceCounter_" + year;
@@ -1766,17 +1780,25 @@ function assignInvoiceNumber(increment) {
   const field = document.getElementById("invoiceNumber");
   const current = field.value.trim();
   const currentMatch = current.match(/^(\d{4})-(\d+)$/);
+  const loadedArchiveNumber = document.body.dataset.loadedArchiveNumber || "";
 
-  if (!increment && currentMatch && Number(currentMatch[1]) === year) {
+  if (
+    !increment &&
+    currentMatch &&
+    Number(currentMatch[1]) === year &&
+    (!invoiceNumberExists(formatInvoiceNumber(year, Number(currentMatch[2]))) ||
+      loadedArchiveNumber === formatInvoiceNumber(year, Number(currentMatch[2])))
+  ) {
     const currentSequence = Number(currentMatch[2]) || 0;
     secureStorage.setItem(counterKey, String(Math.max(sequence, currentSequence)));
     field.value = formatInvoiceNumber(year, currentSequence);
     return;
   }
 
-  sequence += 1;
+  sequence = nextAvailableInvoiceSequence(year, sequence);
   secureStorage.setItem(counterKey, String(sequence));
   field.value = formatInvoiceNumber(year, sequence);
+  document.body.dataset.loadedArchiveNumber = "";
 }
 
 function ensureValidInvoiceNumber() {
@@ -1810,8 +1832,8 @@ function validateInvoice(showSuccess) {
     num("unit" + i) >= 0
   );
 
-  if (!/^\d{4}-\d{3}$/.test(invoiceNumber)) {
-    errors.push("Rechnungsnummer fehlt oder hat nicht das Format JJJJ-001.");
+  if (!/^\d{4}-\d{4}$/.test(invoiceNumber)) {
+    errors.push("Rechnungsnummer fehlt oder hat nicht das Format JJJJ-0001.");
   }
   if (!invoiceDate) errors.push("Ausstellungsdatum fehlt.");
   if (!serviceDate) errors.push("Leistungsdatum fehlt.");
@@ -2170,15 +2192,25 @@ function collectInvoiceData() {
 
 function archiveInvoice() {
   if (!validateInvoice(false)) return;
-  const invoiceNumber = document.getElementById("invoiceNumber").value.trim();
+
+  const field = document.getElementById("invoiceNumber");
+  let invoiceNumber = field.value.trim();
   if (!invoiceNumber) {
     alert("Es ist keine Rechnungsnummer vorhanden.");
     return;
   }
 
   const archive = JSON.parse(secureStorage.getItem("jbbInvoiceArchive") || "{}");
+  const loadedArchiveNumber = document.body.dataset.loadedArchiveNumber || "";
+
+  if (archive[invoiceNumber] && loadedArchiveNumber !== invoiceNumber) {
+    assignInvoiceNumber(true);
+    invoiceNumber = field.value.trim();
+  }
+
   archive[invoiceNumber] = collectInvoiceData();
   secureStorage.setItem("jbbInvoiceArchive", JSON.stringify(archive));
+  document.body.dataset.loadedArchiveNumber = invoiceNumber;
   alert("Rechnung " + invoiceNumber + " wurde im Archiv gespeichert.");
 }
 
@@ -2250,6 +2282,7 @@ function loadArchivedInvoice(number) {
   });
 
   document.getElementById("customerLastName").dataset.customerId = data.customerId || "";
+  document.body.dataset.loadedArchiveNumber = number;
   calculate();
   saveData();
   document.getElementById("archivePanel").style.display = "none";
@@ -2324,6 +2357,7 @@ function clearData() {
   });
   document.getElementById("discount").value = "0";
   document.getElementById("customerLastName").dataset.customerId = "";
+  document.body.dataset.loadedArchiveNumber = "";
   secureStorage.removeItem("jbbInvoice");
   assignInvoiceNumber(true);
   setAutomaticDates(true);
@@ -2787,7 +2821,7 @@ const JbbSecurity = (() => {
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", async function () {
     try {
-      const registration = await navigator.serviceWorker.register("./service-worker.js?v=40-step8-4-summary-at-table-r1", {
+      const registration = await navigator.serviceWorker.register("./service-worker.js?v=40-step8-5-auto-invoice-number-r1", {
         updateViaCache: "none"
       });
       await registration.update();

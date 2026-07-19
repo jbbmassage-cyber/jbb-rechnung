@@ -1,4 +1,4 @@
-const CACHE_NAME = 'jbb-rechnung-v4-step8-4-summary-at-table-20260719-1';
+const CACHE_NAME = 'jbb-rechnung-v4-step8-5-auto-invoice-number-20260719-1';
 const CORE_ASSETS = [
   "./",
   "./index.html"
