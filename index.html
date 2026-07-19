@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
-<title>JBB Rechnungs-App 4.0 – Schritt 7</title>
+<title>JBB Rechnungs-App 4.0 – Schritt 7.1</title>
 <style>
   :root { --sheet-w: 1000; --sheet-h: 1448; }
   * { box-sizing: border-box; }
@@ -678,6 +678,60 @@ body.print-preview .invoice-summary .summary-field {
   margin-left:.2em;
 }
 
+
+/* Schritt 7.1 – finale Feldkorrekturen */
+.customer-block{
+  width:55% !important;
+}
+.customer-row.two-name{
+  grid-template-columns:1fr !important;
+  gap:0 !important;
+}
+.customer-block .customer-field{
+  min-height:2.25em !important;
+  padding:.30em .45em !important;
+  font-size:clamp(8px,1.12vw,13px) !important;
+  line-height:1.35 !important;
+  overflow:visible !important;
+  text-overflow:clip !important;
+}
+.customer-row{
+  margin-bottom:1.7% !important;
+}
+.customer-row.postal-city{
+  grid-template-columns:30% 1fr !important;
+}
+
+.invoice-meta #invoiceNumber{
+  width:100% !important;
+  min-width:0 !important;
+  box-sizing:border-box !important;
+  text-align:right !important;
+  direction:ltr !important;
+  font-size:clamp(8px,1.15vw,13px) !important;
+  font-variant-numeric:tabular-nums;
+  letter-spacing:.02em !important;
+  padding:.18em .35em !important;
+  overflow:visible !important;
+  text-overflow:clip !important;
+}
+.invoice-meta #invoiceDate,
+.invoice-meta #serviceDate{
+  width:100% !important;
+  min-width:0 !important;
+  box-sizing:border-box !important;
+  font-size:clamp(7px,1vw,11px) !important;
+}
+
+@media print{
+  .customer-block .customer-field{
+    font-size:8.2pt !important;
+  }
+  .invoice-meta #invoiceNumber{
+    font-size:8.5pt !important;
+  }
+}
+
 </style>
 
 <link rel="manifest" href="manifest.webmanifest">
@@ -712,7 +766,7 @@ body.print-preview .invoice-summary .summary-field {
   <button class="secondary edit-action" onclick="document.getElementById('backupFile').click()">Backup importieren</button>
   <input id="backupFile" type="file" accept=".json,application/json" style="display:none" onchange="importBackup(event)">
   <p class="preview-note">Druckansicht aktiv: So wird die Rechnung beim Drucken oder Speichern als PDF dargestellt. Zum Ändern wieder „Bearbeiten“ auswählen.</p>
-  <p class="hint">Version 4.0 – Schritt 7: Fortlaufende Rechnungsnummer im Format JJJJ-001, Kalenderauswahl für Ausstellungs- und Leistungsdatum sowie technische Rechnungsprüfung vor Archivierung und PDF-Druck.</p>
+  <p class="hint">Version 4.0 – Schritt 7.1: Größere Kundendatenfelder, vollständig sichtbare Namen, korrekt dargestellte fortlaufende Rechnungsnummer JJJJ-001 und automatisch auf heute gesetzte Datumsfelder.</p>
 </div>
 
 
@@ -991,16 +1045,34 @@ function assignInvoiceNumber(increment) {
   const archived = highestArchivedSequence(year);
   let sequence = Math.max(stored, archived);
 
-  const current = document.getElementById("invoiceNumber").value.trim();
+  const field = document.getElementById("invoiceNumber");
+  const current = field.value.trim();
   const currentMatch = current.match(/^(\d{4})-(\d+)$/);
 
   if (!increment && currentMatch && Number(currentMatch[1]) === year) {
+    const currentSequence = Number(currentMatch[2]) || 0;
+    localStorage.setItem(counterKey, String(Math.max(sequence, currentSequence)));
+    field.value = formatInvoiceNumber(year, currentSequence);
     return;
   }
 
   sequence += 1;
   localStorage.setItem(counterKey, String(sequence));
-  document.getElementById("invoiceNumber").value = formatInvoiceNumber(year, sequence);
+  field.value = formatInvoiceNumber(year, sequence);
+}
+
+function ensureValidInvoiceNumber() {
+  const year = invoiceYear();
+  const field = document.getElementById("invoiceNumber");
+  const match = field.value.trim().match(/^(\d{4})-(\d+)$/);
+
+  if (!match || Number(match[1]) !== year || Number(match[2]) < 1) {
+    field.value = "";
+    assignInvoiceNumber(false);
+    return;
+  }
+
+  field.value = formatInvoiceNumber(year, Number(match[2]));
 }
 
 function validateInvoice(showSuccess) {
@@ -1452,8 +1524,9 @@ function saveData() {
 function loadData() {
   const raw = localStorage.getItem("jbbInvoice");
   if (!raw) {
+    setAutomaticDates(true);
     assignInvoiceNumber(false);
-    setAutomaticDates(false);
+    ensureValidInvoiceNumber();
     calculate();
     return;
   }
@@ -1472,6 +1545,8 @@ function loadData() {
       }
     });
   } catch(e) {}
+  setAutomaticDates(true);
+  ensureValidInvoiceNumber();
   calculate();
 }
 function clearData() {
@@ -1495,7 +1570,7 @@ calculate();
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", async function () {
     try {
-      const registration = await navigator.serviceWorker.register("./service-worker.js?v=40-step7-calendar-numbering-r1", {
+      const registration = await navigator.serviceWorker.register("./service-worker.js?v=40-step7-1-fields-number-date-r1", {
         updateViaCache: "none"
       });
       await registration.update();
