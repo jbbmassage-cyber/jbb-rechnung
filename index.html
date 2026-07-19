@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
-<title>JBB Rechnungs-App 4.0 – Schritt 7.9</title>
+<title>JBB Rechnungs-App 4.0 – Schritt 8.0 Sicherheit</title>
 <style>
   :root { --sheet-w: 1000; --sheet-h: 1448; }
   * { box-sizing: border-box; }
@@ -1252,6 +1252,77 @@ body.print-preview .date-print-text{
   }
 }
 
+
+/* Schritt 8.0 – Passwortschutz und verschlüsselte Datenspeicherung */
+.security-overlay{
+  position:fixed;
+  inset:0;
+  z-index:99999;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:18px;
+  background:rgba(245,242,239,.98);
+  font-family:Arial,sans-serif;
+}
+.security-overlay[hidden]{display:none!important}
+.security-card{
+  width:min(430px,100%);
+  padding:24px;
+  border:1px solid #d8d0ca;
+  border-radius:18px;
+  background:#fff;
+  box-shadow:0 14px 45px rgba(45,29,21,.18);
+  color:#39271f;
+}
+.security-card h2{margin:0 0 8px;font-size:25px}
+.security-card p{margin:0 0 16px;line-height:1.45;color:#655b56}
+.security-card label{display:block;margin:12px 0 5px;font-weight:700}
+.security-card input{
+  box-sizing:border-box;
+  width:100%;
+  padding:12px;
+  border:1px solid #b9afa8;
+  border-radius:9px;
+  font-size:17px;
+}
+.security-card button{
+  width:100%;
+  margin-top:14px;
+  padding:12px 16px;
+  border:0;
+  border-radius:10px;
+  background:#45291d;
+  color:#fff;
+  font-size:17px;
+  font-weight:700;
+}
+.security-card button.secondary-security{
+  background:#85766d;
+}
+.security-error{
+  min-height:1.3em;
+  margin-top:10px!important;
+  color:#a12626!important;
+  font-weight:700;
+}
+.security-note{
+  padding:10px;
+  border-left:4px solid #85766d;
+  background:#f6f3f1;
+  font-size:14px;
+}
+.security-status{
+  display:inline-block;
+  margin-left:5px;
+  font-size:.78em;
+  font-weight:700;
+}
+@media print{
+  .security-overlay,
+  .security-toolbar-button{display:none!important}
+}
+
 </style>
 
 <link rel="manifest" href="manifest.webmanifest">
@@ -1266,6 +1337,33 @@ body.print-preview .date-print-text{
 
 </head>
 <body>
+
+<div id="securityOverlay" class="security-overlay" aria-modal="true" role="dialog">
+  <div class="security-card">
+    <h2 id="securityTitle">App entsperren</h2>
+    <p id="securityIntro">Kundendaten, Rechnungsarchiv und gespeicherte Rechnungen sind verschlüsselt.</p>
+
+    <div id="securitySetupFields" hidden>
+      <p class="security-note">
+        Lege ein Passwort mit mindestens 10 Zeichen fest. Ohne dieses Passwort können die verschlüsselten Daten nicht wiederhergestellt werden.
+      </p>
+      <label for="securityNewPassword">Neues Passwort</label>
+      <input id="securityNewPassword" type="password" autocomplete="new-password">
+      <label for="securityConfirmPassword">Passwort wiederholen</label>
+      <input id="securityConfirmPassword" type="password" autocomplete="new-password">
+      <button id="securitySetupButton" type="button">Verschlüsselung aktivieren</button>
+    </div>
+
+    <div id="securityUnlockFields" hidden>
+      <label for="securityPassword">Passwort</label>
+      <input id="securityPassword" type="password" autocomplete="current-password">
+      <button id="securityUnlockButton" type="button">Entsperren</button>
+    </div>
+
+    <p id="securityError" class="security-error" aria-live="polite"></p>
+  </div>
+</div>
+
 <div class="toolbar">
   <label class="view-selector" for="viewMode">Ansicht
     <select id="viewMode" onchange="setViewMode(this.value)" aria-label="Ansicht auswählen">
@@ -1284,9 +1382,12 @@ body.print-preview .date-print-text{
 
   <button class="secondary edit-action" onclick="exportBackup()">Backup exportieren</button>
   <button class="secondary edit-action" onclick="document.getElementById('backupFile').click()">Backup importieren</button>
+  <button class="secondary edit-action security-toolbar-button" onclick="changeAppPassword()">Passwort ändern</button>
+  <button class="secondary edit-action security-toolbar-button" onclick="lockApp()">App sperren</button>
+  <span class="security-status edit-action">🔒 Verschlüsselt</span>
   <input id="backupFile" type="file" accept=".json,application/json" style="display:none" onchange="importBackup(event)">
   <p class="preview-note">Druckansicht aktiv: So wird die Rechnung beim Drucken oder Speichern als PDF dargestellt. Zum Ändern wieder „Bearbeiten“ auswählen.</p>
-  <p class="hint">Version 4.0 – Schritt 7.9: Das vollständige Logo einschließlich der unteren Schrift wurde transparent eingesetzt. Alle übrigen Layoutpositionen und Funktionen bleiben unverändert.</p>
+  <p class="hint">Version 4.0 – Schritt 8.0: Passwortschutz, AES-256-Verschlüsselung, automatische Sperre und verschlüsselte Backups. Das Rechnungsdesign bleibt unverändert.</p>
 </div>
 
 
@@ -1493,7 +1594,7 @@ body.print-preview .date-print-text{
 </div>
 </div>
 
-<script>
+<script type="text/plain" id="jbbProtectedAppScript">
 const ids = [
   "invoiceNumber","invoiceDate","serviceDate",
   "customerLastName","customerFirstName","customerStreet","customerPostal","customerCity",
@@ -1601,7 +1702,7 @@ function formatInvoiceNumber(year, sequence) {
 }
 
 function highestArchivedSequence(year) {
-  const archive = JSON.parse(localStorage.getItem("jbbInvoiceArchive") || "{}");
+  const archive = JSON.parse(secureStorage.getItem("jbbInvoiceArchive") || "{}");
   let highest = 0;
   Object.keys(archive).forEach(number => {
     const match = String(number).match(/^(\d{4})-(\d+)$/);
@@ -1615,7 +1716,7 @@ function highestArchivedSequence(year) {
 function assignInvoiceNumber(increment) {
   const year = invoiceYear();
   const counterKey = "jbbInvoiceCounter_" + year;
-  const stored = parseInt(localStorage.getItem(counterKey) || "0", 10) || 0;
+  const stored = parseInt(secureStorage.getItem(counterKey) || "0", 10) || 0;
   const archived = highestArchivedSequence(year);
   let sequence = Math.max(stored, archived);
 
@@ -1625,13 +1726,13 @@ function assignInvoiceNumber(increment) {
 
   if (!increment && currentMatch && Number(currentMatch[1]) === year) {
     const currentSequence = Number(currentMatch[2]) || 0;
-    localStorage.setItem(counterKey, String(Math.max(sequence, currentSequence)));
+    secureStorage.setItem(counterKey, String(Math.max(sequence, currentSequence)));
     field.value = formatInvoiceNumber(year, currentSequence);
     return;
   }
 
   sequence += 1;
-  localStorage.setItem(counterKey, String(sequence));
+  secureStorage.setItem(counterKey, String(sequence));
   field.value = formatInvoiceNumber(year, sequence);
 }
 
@@ -1693,34 +1794,25 @@ function printInvoice() {
   window.print();
 }
 
-function exportBackup() {
-  const backup = {
-    version: "2.2",
-    exportedAt: new Date().toISOString(),
-    invoiceCounter: {},
-    currentDraft: localStorage.getItem("jbbInvoice"),
-    invoiceArchive: localStorage.getItem("jbbInvoiceArchive"),
-    defaultPrices: localStorage.getItem("jbbDefaultPrices"),
-    customers: localStorage.getItem("jbbCustomers")
-  };
 
-  for (let i = 0; i < localStorage.length; i++) {
-    const key = localStorage.key(i);
-    if (key && key.startsWith("jbbInvoiceCounter_")) {
-      backup.invoiceCounter[key] = localStorage.getItem(key);
-    }
+async function exportBackup() {
+  try {
+    await secureStorage.flush();
+    const packageData = await JbbSecurity.createEncryptedBackup();
+    const blob = new Blob([JSON.stringify(packageData, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    const date = new Date().toISOString().slice(0, 10);
+    link.href = url;
+    link.download = "JBB_Verschluesseltes_Backup_" + date + ".jbbsecure.json";
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+  } catch (error) {
+    alert("Das verschlüsselte Backup konnte nicht erstellt werden.");
+    console.error(error);
   }
-
-  const blob = new Blob([JSON.stringify(backup, null, 2)], { type: "application/json" });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  const date = new Date().toISOString().slice(0, 10);
-  link.href = url;
-  link.download = "JBB_Rechnungs_Backup_" + date + ".json";
-  document.body.appendChild(link);
-  link.click();
-  link.remove();
-  URL.revokeObjectURL(url);
 }
 
 function importBackup(event) {
@@ -1728,32 +1820,15 @@ function importBackup(event) {
   if (!file) return;
 
   const reader = new FileReader();
-  reader.onload = function () {
+  reader.onload = async function () {
     try {
       const backup = JSON.parse(reader.result);
-
-      if (backup.currentDraft) localStorage.setItem("jbbInvoice", backup.currentDraft);
-      else localStorage.removeItem("jbbInvoice");
-
-      if (backup.invoiceArchive) localStorage.setItem("jbbInvoiceArchive", backup.invoiceArchive);
-      else localStorage.removeItem("jbbInvoiceArchive");
-
-      if (backup.defaultPrices) localStorage.setItem("jbbDefaultPrices", backup.defaultPrices);
-
-      if (backup.customers) localStorage.setItem("jbbCustomers", backup.customers);
-
-      if (backup.invoiceCounter && typeof backup.invoiceCounter === "object") {
-        Object.entries(backup.invoiceCounter).forEach(([key, value]) => {
-          if (key.startsWith("jbbInvoiceCounter_")) {
-            localStorage.setItem(key, String(value));
-          }
-        });
-      }
-
-      alert("Das Backup wurde erfolgreich importiert. Die App wird neu geladen.");
+      await JbbSecurity.importEncryptedBackup(backup);
+      alert("Das verschlüsselte Backup wurde importiert. Die App wird neu geladen.");
       location.reload();
     } catch (error) {
-      alert("Die ausgewählte Datei ist kein gültiges JBB-Backup.");
+      alert("Die Datei ist kein gültiges verschlüsseltes JBB-Backup.");
+      console.error(error);
     } finally {
       event.target.value = "";
     }
@@ -1783,7 +1858,7 @@ function syncVisibleCustomerToArchiveFields() {
 
 function getCustomers() {
   try {
-    return JSON.parse(localStorage.getItem("jbbCustomers") || "[]");
+    return JSON.parse(secureStorage.getItem("jbbCustomers") || "[]");
   } catch (e) {
     return [];
   }
@@ -1837,7 +1912,7 @@ function saveCustomer() {
   if (index >= 0) customers[index] = customer;
   else customers.push(customer);
 
-  localStorage.setItem("jbbCustomers", JSON.stringify(customers));
+  secureStorage.setItem("jbbCustomers", JSON.stringify(customers));
   document.getElementById("customerLastName").dataset.customerId = customer.id;
   loadArchiveCustomerFields(customer);
   saveData();
@@ -1936,7 +2011,7 @@ function deleteCustomer(id) {
   if (!customer) return;
   if (!confirm("Kunde " + (customer.firstName || "") + " " + (customer.lastName || "") + " wirklich löschen?")) return;
 
-  localStorage.setItem(
+  secureStorage.setItem(
     "jbbCustomers",
     JSON.stringify(customers.filter(item => item.id !== id))
   );
@@ -1987,9 +2062,9 @@ function archiveInvoice() {
     return;
   }
 
-  const archive = JSON.parse(localStorage.getItem("jbbInvoiceArchive") || "{}");
+  const archive = JSON.parse(secureStorage.getItem("jbbInvoiceArchive") || "{}");
   archive[invoiceNumber] = collectInvoiceData();
-  localStorage.setItem("jbbInvoiceArchive", JSON.stringify(archive));
+  secureStorage.setItem("jbbInvoiceArchive", JSON.stringify(archive));
   alert("Rechnung " + invoiceNumber + " wurde im Archiv gespeichert.");
 }
 
@@ -2002,7 +2077,7 @@ function toggleArchive() {
 
 function renderArchive() {
   const container = document.getElementById("archiveList");
-  const archive = JSON.parse(localStorage.getItem("jbbInvoiceArchive") || "{}");
+  const archive = JSON.parse(secureStorage.getItem("jbbInvoiceArchive") || "{}");
   const query = (document.getElementById("archiveSearch")?.value || "").trim().toLowerCase();
 
   const entries = Object.entries(archive)
@@ -2051,7 +2126,7 @@ function renderArchive() {
 }
 
 function loadArchivedInvoice(number) {
-  const archive = JSON.parse(localStorage.getItem("jbbInvoiceArchive") || "{}");
+  const archive = JSON.parse(secureStorage.getItem("jbbInvoiceArchive") || "{}");
   const data = migrateLegacyCustomerAddress(archive[number]);
   if (!data) return;
 
@@ -2069,9 +2144,9 @@ function loadArchivedInvoice(number) {
 
 function deleteArchivedInvoice(number) {
   if (!confirm("Rechnung " + number + " wirklich aus dem Archiv löschen?")) return;
-  const archive = JSON.parse(localStorage.getItem("jbbInvoiceArchive") || "{}");
+  const archive = JSON.parse(secureStorage.getItem("jbbInvoiceArchive") || "{}");
   delete archive[number];
-  localStorage.setItem("jbbInvoiceArchive", JSON.stringify(archive));
+  secureStorage.setItem("jbbInvoiceArchive", JSON.stringify(archive));
   renderArchive();
 }
 
@@ -2094,11 +2169,11 @@ function saveData() {
     const el = document.getElementById(id);
     data[id] = el.value;
   });
-  localStorage.setItem("jbbInvoice", JSON.stringify(data));
+  secureStorage.setItem("jbbInvoice", JSON.stringify(data));
   alert("Die Eingaben wurden auf diesem Gerät gespeichert.");
 }
 function loadData() {
-  const raw = localStorage.getItem("jbbInvoice");
+  const raw = secureStorage.getItem("jbbInvoice");
   if (!raw) {
     setAutomaticDates(true);
     assignInvoiceNumber(false);
@@ -2135,7 +2210,7 @@ function clearData() {
   });
   document.getElementById("discount").value = "0";
   document.getElementById("customerLastName").dataset.customerId = "";
-  localStorage.removeItem("jbbInvoice");
+  secureStorage.removeItem("jbbInvoice");
   assignInvoiceNumber(true);
   setAutomaticDates(true);
   calculate();
@@ -2143,13 +2218,462 @@ function clearData() {
 loadData();
 updateDatePrintTexts();
 calculate();
+
+</script>
+
+
+<script>
+"use strict";
+
+const JbbSecurity = (() => {
+  const nativeStorage = window.localStorage;
+  const CONFIG_KEY = "jbbSecurityConfigV1";
+  const VAULT_KEY = "jbbEncryptedVaultV1";
+  const ITERATIONS = 310000;
+  const AUTO_LOCK_MS = 5 * 60 * 1000;
+  const AWAY_LOCK_MS = 30 * 1000;
+
+  const sensitiveExactKeys = new Set([
+    "jbbInvoice",
+    "jbbInvoiceArchive",
+    "jbbDefaultPrices",
+    "jbbCustomers"
+  ]);
+
+  let cryptoKey = null;
+  let vault = {};
+  let persistChain = Promise.resolve();
+  let appStarted = false;
+  let inactivityTimer = null;
+  let awayTimer = null;
+  let failedAttempts = 0;
+  let blockedUntil = 0;
+
+  const encoder = new TextEncoder();
+  const decoder = new TextDecoder();
+
+  const overlay = document.getElementById("securityOverlay");
+  const title = document.getElementById("securityTitle");
+  const intro = document.getElementById("securityIntro");
+  const setupFields = document.getElementById("securitySetupFields");
+  const unlockFields = document.getElementById("securityUnlockFields");
+  const newPassword = document.getElementById("securityNewPassword");
+  const confirmPassword = document.getElementById("securityConfirmPassword");
+  const password = document.getElementById("securityPassword");
+  const setupButton = document.getElementById("securitySetupButton");
+  const unlockButton = document.getElementById("securityUnlockButton");
+  const errorBox = document.getElementById("securityError");
+
+  function isSensitiveKey(key) {
+    return sensitiveExactKeys.has(key) || String(key).startsWith("jbbInvoiceCounter_");
+  }
+
+  function bytesToBase64(bytes) {
+    let binary = "";
+    const chunk = 0x8000;
+    for (let i = 0; i < bytes.length; i += chunk) {
+      binary += String.fromCharCode(...bytes.subarray(i, i + chunk));
+    }
+    return btoa(binary);
+  }
+
+  function base64ToBytes(value) {
+    const binary = atob(value);
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+    return bytes;
+  }
+
+  function randomBytes(length) {
+    return crypto.getRandomValues(new Uint8Array(length));
+  }
+
+  async function deriveKey(passwordValue, salt) {
+    const material = await crypto.subtle.importKey(
+      "raw",
+      encoder.encode(passwordValue),
+      "PBKDF2",
+      false,
+      ["deriveKey"]
+    );
+    return crypto.subtle.deriveKey(
+      {
+        name: "PBKDF2",
+        salt,
+        iterations: ITERATIONS,
+        hash: "SHA-256"
+      },
+      material,
+      { name: "AES-GCM", length: 256 },
+      false,
+      ["encrypt", "decrypt"]
+    );
+  }
+
+  async function encryptObject(value, key) {
+    const iv = randomBytes(12);
+    const plaintext = encoder.encode(JSON.stringify(value));
+    const ciphertext = await crypto.subtle.encrypt({ name: "AES-GCM", iv }, key, plaintext);
+    return {
+      iv: bytesToBase64(iv),
+      data: bytesToBase64(new Uint8Array(ciphertext))
+    };
+  }
+
+  async function decryptObject(payload, key) {
+    const plaintext = await crypto.subtle.decrypt(
+      { name: "AES-GCM", iv: base64ToBytes(payload.iv) },
+      key,
+      base64ToBytes(payload.data)
+    );
+    return JSON.parse(decoder.decode(plaintext));
+  }
+
+  function getConfig() {
+    const raw = nativeStorage.getItem(CONFIG_KEY);
+    if (!raw) return null;
+    try {
+      return JSON.parse(raw);
+    } catch {
+      return null;
+    }
+  }
+
+  async function createVerifier(key) {
+    return encryptObject({ marker: "JBB-SECURE-V1" }, key);
+  }
+
+  async function verifyKey(key, config) {
+    try {
+      const value = await decryptObject(config.verifier, key);
+      return value && value.marker === "JBB-SECURE-V1";
+    } catch {
+      return false;
+    }
+  }
+
+  function collectPlaintextData() {
+    const migrated = {};
+    const keysToRemove = [];
+
+    for (let i = 0; i < nativeStorage.length; i++) {
+      const key = nativeStorage.key(i);
+      if (key && isSensitiveKey(key)) {
+        migrated[key] = nativeStorage.getItem(key);
+        keysToRemove.push(key);
+      }
+    }
+    keysToRemove.forEach(key => nativeStorage.removeItem(key));
+    return migrated;
+  }
+
+  async function persistNow() {
+    if (!cryptoKey) return;
+    const encrypted = await encryptObject(vault, cryptoKey);
+    nativeStorage.setItem(VAULT_KEY, JSON.stringify(encrypted));
+  }
+
+  function schedulePersist() {
+    persistChain = persistChain
+      .catch(() => {})
+      .then(() => persistNow());
+    return persistChain;
+  }
+
+  const secureStorage = {
+    get length() {
+      return Object.keys(vault).length;
+    },
+    key(index) {
+      return Object.keys(vault)[index] ?? null;
+    },
+    getItem(key) {
+      return Object.prototype.hasOwnProperty.call(vault, key) ? vault[key] : null;
+    },
+    setItem(key, value) {
+      vault[String(key)] = String(value);
+      schedulePersist();
+    },
+    removeItem(key) {
+      delete vault[String(key)];
+      schedulePersist();
+    },
+    clear() {
+      vault = {};
+      schedulePersist();
+    },
+    keys() {
+      return Object.keys(vault);
+    },
+    async flush() {
+      await schedulePersist();
+    }
+  };
+  window.secureStorage = secureStorage;
+
+  function setError(message) {
+    errorBox.textContent = message || "";
+  }
+
+  function showSetup() {
+    title.textContent = "Sichere App einrichten";
+    intro.textContent = "Kundendaten, Rechnungsarchiv und gespeicherte Rechnungen werden mit deinem Passwort verschlüsselt.";
+    setupFields.hidden = false;
+    unlockFields.hidden = true;
+    overlay.hidden = false;
+    setTimeout(() => newPassword.focus(), 50);
+  }
+
+  function showUnlock() {
+    title.textContent = "App entsperren";
+    intro.textContent = "Gib dein Passwort ein, um Kundendaten und Rechnungen zu entschlüsseln.";
+    setupFields.hidden = true;
+    unlockFields.hidden = false;
+    overlay.hidden = false;
+    password.value = "";
+    setTimeout(() => password.focus(), 50);
+  }
+
+  function hideOverlay() {
+    overlay.hidden = true;
+    setError("");
+  }
+
+  function startProtectedApp() {
+    if (appStarted) return;
+    appStarted = true;
+    const source = document.getElementById("jbbProtectedAppScript").textContent;
+    (0, eval)(source);
+    resetInactivityTimer();
+  }
+
+  function resetInactivityTimer() {
+    clearTimeout(inactivityTimer);
+    if (!cryptoKey) return;
+    inactivityTimer = setTimeout(() => lock("Die App wurde nach 5 Minuten Inaktivität gesperrt."), AUTO_LOCK_MS);
+  }
+
+  async function setup(passwordValue) {
+    if (passwordValue.length < 10) {
+      throw new Error("Das Passwort muss mindestens 10 Zeichen lang sein.");
+    }
+
+    const salt = randomBytes(16);
+    const key = await deriveKey(passwordValue, salt);
+    const verifier = await createVerifier(key);
+
+    vault = collectPlaintextData();
+    cryptoKey = key;
+
+    nativeStorage.setItem(CONFIG_KEY, JSON.stringify({
+      version: 1,
+      iterations: ITERATIONS,
+      salt: bytesToBase64(salt),
+      verifier
+    }));
+
+    await persistNow();
+    hideOverlay();
+    startProtectedApp();
+  }
+
+  async function unlock(passwordValue) {
+    if (Date.now() < blockedUntil) {
+      const seconds = Math.ceil((blockedUntil - Date.now()) / 1000);
+      throw new Error(`Zu viele Fehlversuche. Bitte noch ${seconds} Sekunden warten.`);
+    }
+
+    const config = getConfig();
+    if (!config) throw new Error("Die Sicherheitskonfiguration fehlt.");
+
+    const key = await deriveKey(passwordValue, base64ToBytes(config.salt));
+    const valid = await verifyKey(key, config);
+    if (!valid) {
+      failedAttempts += 1;
+      if (failedAttempts >= 5) {
+        blockedUntil = Date.now() + 30000;
+        failedAttempts = 0;
+      }
+      throw new Error("Passwort ist nicht korrekt.");
+    }
+
+    const encryptedRaw = nativeStorage.getItem(VAULT_KEY);
+    vault = encryptedRaw ? await decryptObject(JSON.parse(encryptedRaw), key) : {};
+    cryptoKey = key;
+    failedAttempts = 0;
+    hideOverlay();
+    startProtectedApp();
+    resetInactivityTimer();
+  }
+
+  async function lock(message) {
+    if (!cryptoKey) return;
+    try {
+      if (typeof window.saveData === "function") window.saveData();
+      await secureStorage.flush();
+    } catch (error) {
+      console.warn("Daten konnten vor dem Sperren nicht vollständig gespeichert werden.", error);
+    }
+
+    cryptoKey = null;
+    vault = {};
+    clearTimeout(inactivityTimer);
+    sessionStorage.setItem("jbbLockMessage", message || "");
+    location.reload();
+  }
+
+  async function changePassword() {
+    if (!cryptoKey) return;
+
+    const current = prompt("Aktuelles Passwort eingeben:");
+    if (current === null) return;
+
+    const config = getConfig();
+    const currentKey = await deriveKey(current, base64ToBytes(config.salt));
+    if (!(await verifyKey(currentKey, config))) {
+      alert("Das aktuelle Passwort ist nicht korrekt.");
+      return;
+    }
+
+    const next = prompt("Neues Passwort eingeben (mindestens 10 Zeichen):");
+    if (next === null) return;
+    if (next.length < 10) {
+      alert("Das neue Passwort muss mindestens 10 Zeichen lang sein.");
+      return;
+    }
+
+    const repeat = prompt("Neues Passwort wiederholen:");
+    if (repeat !== next) {
+      alert("Die Passwörter stimmen nicht überein.");
+      return;
+    }
+
+    const newSalt = randomBytes(16);
+    const newKey = await deriveKey(next, newSalt);
+    const verifier = await createVerifier(newKey);
+    cryptoKey = newKey;
+
+    nativeStorage.setItem(CONFIG_KEY, JSON.stringify({
+      version: 1,
+      iterations: ITERATIONS,
+      salt: bytesToBase64(newSalt),
+      verifier
+    }));
+    await persistNow();
+    alert("Das Passwort wurde geändert. Alle gespeicherten Daten und künftigen Backups verwenden jetzt das neue Passwort.");
+    resetInactivityTimer();
+  }
+
+  async function createEncryptedBackup() {
+    await secureStorage.flush();
+    return {
+      app: "JBB-Rechnungs-App",
+      format: "JBB-ENCRYPTED-BACKUP",
+      version: 1,
+      exportedAt: new Date().toISOString(),
+      config: JSON.parse(nativeStorage.getItem(CONFIG_KEY)),
+      encryptedVault: JSON.parse(nativeStorage.getItem(VAULT_KEY))
+    };
+  }
+
+  async function importEncryptedBackup(packageData) {
+    if (
+      !packageData ||
+      packageData.format !== "JBB-ENCRYPTED-BACKUP" ||
+      !packageData.config ||
+      !packageData.encryptedVault
+    ) {
+      throw new Error("Ungültiges Backup.");
+    }
+
+    nativeStorage.setItem(CONFIG_KEY, JSON.stringify(packageData.config));
+    nativeStorage.setItem(VAULT_KEY, JSON.stringify(packageData.encryptedVault));
+  }
+
+  setupButton.addEventListener("click", async () => {
+    setError("");
+    if (newPassword.value !== confirmPassword.value) {
+      setError("Die Passwörter stimmen nicht überein.");
+      return;
+    }
+    setupButton.disabled = true;
+    try {
+      await setup(newPassword.value);
+      newPassword.value = "";
+      confirmPassword.value = "";
+    } catch (error) {
+      setError(error.message || "Einrichtung fehlgeschlagen.");
+    } finally {
+      setupButton.disabled = false;
+    }
+  });
+
+  unlockButton.addEventListener("click", async () => {
+    setError("");
+    unlockButton.disabled = true;
+    try {
+      await unlock(password.value);
+    } catch (error) {
+      setError(error.message || "Entsperren fehlgeschlagen.");
+    } finally {
+      unlockButton.disabled = false;
+    }
+  });
+
+  password.addEventListener("keydown", event => {
+    if (event.key === "Enter") unlockButton.click();
+  });
+  confirmPassword.addEventListener("keydown", event => {
+    if (event.key === "Enter") setupButton.click();
+  });
+
+  ["pointerdown", "keydown", "touchstart", "input"].forEach(eventName => {
+    document.addEventListener(eventName, resetInactivityTimer, { passive: true });
+  });
+
+  document.addEventListener("visibilitychange", () => {
+    if (document.hidden && cryptoKey) {
+      clearTimeout(awayTimer);
+      awayTimer = setTimeout(() => lock("Die App wurde nach dem Wechsel in eine andere App gesperrt."), AWAY_LOCK_MS);
+    } else {
+      clearTimeout(awayTimer);
+      resetInactivityTimer();
+    }
+  });
+
+  window.addEventListener("pagehide", () => {
+    if (cryptoKey) secureStorage.flush();
+  });
+
+  window.lockApp = () => lock("Die App wurde manuell gesperrt.");
+  window.changeAppPassword = () => changePassword().catch(error => {
+    console.error(error);
+    alert("Das Passwort konnte nicht geändert werden.");
+  });
+
+  const priorMessage = sessionStorage.getItem("jbbLockMessage");
+  if (priorMessage) {
+    sessionStorage.removeItem("jbbLockMessage");
+    setError(priorMessage);
+  }
+
+  if (getConfig()) showUnlock();
+  else showSetup();
+
+  return {
+    createEncryptedBackup,
+    importEncryptedBackup,
+    lock,
+    changePassword
+  };
+})();
 </script>
 
 <script>
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", async function () {
     try {
-      const registration = await navigator.serviceWorker.register("./service-worker.js?v=40-step7-9-full-transparent-logo-r2", {
+      const registration = await navigator.serviceWorker.register("./service-worker.js?v=40-step8-0-security-r1", {
         updateViaCache: "none"
       });
       await registration.update();
