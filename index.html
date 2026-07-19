@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
-<title>JBB Rechnungs-App 4.0 – Schritt 7.2</title>
+<title>JBB Rechnungs-App 4.0 – Schritt 7.3</title>
 <style>
   :root { --sheet-w: 1000; --sheet-h: 1448; }
   * { box-sizing: border-box; }
@@ -810,6 +810,85 @@ body.print-preview .invoice-summary .summary-field {
   }
 }
 
+
+/* Schritt 7.3 – Feinkorrektur Kundendaten und Datumsfelder */
+.customer-row{
+  margin-bottom:.45% !important;
+}
+.customer-block .customer-field{
+  min-height:1.78em !important;
+  padding:.10em .42em !important;
+  line-height:1.15 !important;
+}
+.customer-row.postal-city{
+  gap:2.2% !important;
+}
+
+.invoice-meta-row{
+  grid-template-columns:1fr 43% !important;
+  column-gap:2.5% !important;
+}
+.invoice-meta #invoiceNumber,
+.invoice-meta #invoiceDate,
+.invoice-meta #serviceDate{
+  width:100% !important;
+  min-width:0 !important;
+  box-sizing:border-box !important;
+  text-align:right !important;
+  direction:ltr !important;
+  padding:.14em .30em !important;
+  overflow:visible !important;
+  text-overflow:clip !important;
+  white-space:nowrap !important;
+  font-variant-numeric:tabular-nums;
+}
+.invoice-meta #invoiceNumber{
+  font-size:clamp(8px,1.18vw,13px) !important;
+}
+.invoice-meta #invoiceDate,
+.invoice-meta #serviceDate{
+  font-size:clamp(7.2px,1.02vw,11.5px) !important;
+  padding-left:1.7em !important;
+}
+
+/* Kalender-Symbol links */
+.invoice-meta input[type="date"]{
+  position:relative;
+}
+.invoice-meta input[type="date"]::-webkit-calendar-picker-indicator{
+  position:absolute;
+  left:.20em;
+  right:auto;
+  margin:0;
+  opacity:.72;
+  cursor:pointer;
+}
+.invoice-meta input[type="date"]::-webkit-datetime-edit{
+  text-align:right;
+}
+.invoice-meta input[type="date"]::-webkit-datetime-edit-fields-wrapper{
+  width:100%;
+  justify-content:flex-end;
+}
+
+body.print-preview .invoice-meta input[type="date"]::-webkit-calendar-picker-indicator{
+  display:none !important;
+  opacity:0 !important;
+}
+@media print{
+  .invoice-meta input[type="date"]::-webkit-calendar-picker-indicator{
+    display:none !important;
+    opacity:0 !important;
+  }
+  .invoice-meta #invoiceDate,
+  .invoice-meta #serviceDate{
+    padding-left:.30em !important;
+  }
+  .customer-row{
+    margin-bottom:.35% !important;
+  }
+}
+
 </style>
 
 <link rel="manifest" href="manifest.webmanifest">
@@ -844,7 +923,7 @@ body.print-preview .invoice-summary .summary-field {
   <button class="secondary edit-action" onclick="document.getElementById('backupFile').click()">Backup importieren</button>
   <input id="backupFile" type="file" accept=".json,application/json" style="display:none" onchange="importBackup(event)">
   <p class="preview-note">Druckansicht aktiv: So wird die Rechnung beim Drucken oder Speichern als PDF dargestellt. Zum Ändern wieder „Bearbeiten“ auswählen.</p>
-  <p class="hint">Version 4.0 – Schritt 7.2: Kundendatenblock neu positioniert, Namensfelder verbreitert und Datumsfelder vollständig sichtbar gemacht.</p>
+  <p class="hint">Version 4.0 – Schritt 7.3: Engere Kundendatenzeilen, vollständig lesbare und rechtsbündige Rechnungs- und Datumsfelder sowie links angeordnete, in der Druckansicht ausgeblendete Kalenderauswahl.</p>
 </div>
 
 
@@ -1648,7 +1727,7 @@ calculate();
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", async function () {
     try {
-      const registration = await navigator.serviceWorker.register("./service-worker.js?v=40-step7-2-layout-r1", {
+      const registration = await navigator.serviceWorker.register("./service-worker.js?v=40-step7-3-date-align-r1", {
         updateViaCache: "none"
       });
       await registration.update();
