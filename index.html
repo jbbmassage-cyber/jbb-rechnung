@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
-<title>JBB Rechnungs-App 4.0 – Schritt 7.5b</title>
+<title>JBB Rechnungs-App 4.0 – Schritt 7.6</title>
 <style>
   :root { --sheet-w: 1000; --sheet-h: 1448; }
   * { box-sizing: border-box; }
@@ -1078,6 +1078,29 @@ body.print-preview .date-print-text{
   }
 }
 
+
+/* Schritt 7.6 – ausschließlich Logo angepasst */
+.business-logo{
+  transform:none !important;
+  width:21.5% !important;
+  max-width:21.5% !important;
+  height:14.2% !important;
+  left:5.2% !important;
+  top:3.2% !important;
+  object-fit:contain !important;
+  object-position:left top !important;
+}
+
+@media print{
+  .business-logo{
+    width:21.5% !important;
+    max-width:21.5% !important;
+    height:14.2% !important;
+    left:5.2% !important;
+    top:3.2% !important;
+  }
+}
+
 </style>
 
 <link rel="manifest" href="manifest.webmanifest">
@@ -1112,7 +1135,7 @@ body.print-preview .date-print-text{
   <button class="secondary edit-action" onclick="document.getElementById('backupFile').click()">Backup importieren</button>
   <input id="backupFile" type="file" accept=".json,application/json" style="display:none" onchange="importBackup(event)">
   <p class="preview-note">Druckansicht aktiv: So wird die Rechnung beim Drucken oder Speichern als PDF dargestellt. Zum Ändern wieder „Bearbeiten“ auswählen.</p>
-  <p class="hint">Version 4.0 – Schritt 7.5b: Nur die Rechnungstabelle wurde nochmals deutlich kompakter gestaltet. Zeilenhöhe und Innenabstände wurden reduziert.</p>
+  <p class="hint">Version 4.0 – Schritt 7.6: Das Logo wurde proportional verkleinert und so positioniert, dass es vollständig sichtbar bleibt. Alle übrigen Bereiche bleiben unverändert.</p>
 </div>
 
 
@@ -1975,7 +1998,7 @@ calculate();
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", async function () {
     try {
-      const registration = await navigator.serviceWorker.register("./service-worker.js?v=40-step7-5b-table-compact-r1", {
+      const registration = await navigator.serviceWorker.register("./service-worker.js?v=40-step7-6-logo-r1", {
         updateViaCache: "none"
       });
       await registration.update();
