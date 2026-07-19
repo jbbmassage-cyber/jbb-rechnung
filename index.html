@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
-<title>JBB Rechnungs-App 4.0 – Schritt 7.6</title>
+<title>JBB Rechnungs-App 4.0 – Schritt 7.7</title>
 <style>
   :root { --sheet-w: 1000; --sheet-h: 1448; }
   * { box-sizing: border-box; }
@@ -1079,26 +1079,145 @@ body.print-preview .date-print-text{
 }
 
 
-/* Schritt 7.6 – ausschließlich Logo angepasst */
+
+/* Schritt 7.7 – Kopfzeile, Logo und kompakte Tabellenzeilen */
 .business-logo{
+  width:18.5% !important;
+  max-width:18.5% !important;
+  height:12.5% !important;
+  left:5.0% !important;
+  top:2.8% !important;
   transform:none !important;
-  width:21.5% !important;
-  max-width:21.5% !important;
-  height:14.2% !important;
-  left:5.2% !important;
-  top:3.2% !important;
   object-fit:contain !important;
   object-position:left top !important;
 }
 
+.invoice-meta{
+  right:4.8% !important;
+  width:50.0% !important;
+  top:3.15% !important;
+}
+
+.invoice-meta h1{
+  margin:0 0 7.2% !important;
+  font-size:clamp(13px,2.15vw,25px) !important;
+  line-height:1 !important;
+  white-space:nowrap !important;
+  text-align:right !important;
+}
+
+/* Feste Pixelhöhe verhindert die bisherige große em-basierte Zeilenhöhe. */
+.invoice-table thead th{
+  height:18px !important;
+  min-height:18px !important;
+  padding:1px 3px !important;
+  line-height:1 !important;
+}
+
+.invoice-table tbody tr{
+  height:22px !important;
+  min-height:22px !important;
+  max-height:22px !important;
+}
+
+.invoice-table tbody tr:nth-child(2){
+  height:27px !important;
+  min-height:27px !important;
+  max-height:27px !important;
+}
+
+.invoice-table tbody td{
+  height:22px !important;
+  min-height:22px !important;
+  max-height:22px !important;
+  padding:1px 3px !important;
+  line-height:1 !important;
+  vertical-align:middle !important;
+}
+
+.invoice-table tbody tr:nth-child(2) td{
+  height:27px !important;
+  min-height:27px !important;
+  max-height:27px !important;
+}
+
+.service-description-cell{
+  padding-left:4px !important;
+}
+
+.service-fixed-text{
+  gap:0 !important;
+  line-height:1 !important;
+}
+
+.service-de{
+  font-size:5.2px !important;
+  line-height:1.02 !important;
+  margin:0 !important;
+}
+
+.service-en{
+  font-size:4.7px !important;
+  line-height:1.02 !important;
+  margin:0 !important;
+}
+
+.invoice-table .position-number{
+  font-size:5.4px !important;
+  line-height:1 !important;
+}
+
+.invoice-table .qty,
+.invoice-table .unit,
+.invoice-table .total{
+  height:12px !important;
+  min-height:12px !important;
+  padding:0 1px !important;
+  font-size:5.4px !important;
+  line-height:1 !important;
+}
+
 @media print{
   .business-logo{
-    width:21.5% !important;
-    max-width:21.5% !important;
-    height:14.2% !important;
-    left:5.2% !important;
-    top:3.2% !important;
+    width:18.5% !important;
+    max-width:18.5% !important;
+    height:12.5% !important;
+    left:5.0% !important;
+    top:2.8% !important;
   }
+
+  .invoice-meta{
+    right:4.8% !important;
+    width:50.0% !important;
+  }
+
+  .invoice-meta h1{
+    font-size:18pt !important;
+    white-space:nowrap !important;
+  }
+
+  .invoice-table thead th{
+    height:18px !important;
+    min-height:18px !important;
+    padding:1px 3px !important;
+  }
+
+  .invoice-table tbody tr,
+  .invoice-table tbody td{
+    height:22px !important;
+    min-height:22px !important;
+    max-height:22px !important;
+  }
+
+  .invoice-table tbody tr:nth-child(2),
+  .invoice-table tbody tr:nth-child(2) td{
+    height:27px !important;
+    min-height:27px !important;
+    max-height:27px !important;
+  }
+
+  .service-de{ font-size:4.0pt !important; }
+  .service-en{ font-size:3.6pt !important; }
 }
 
 </style>
@@ -1135,7 +1254,7 @@ body.print-preview .date-print-text{
   <button class="secondary edit-action" onclick="document.getElementById('backupFile').click()">Backup importieren</button>
   <input id="backupFile" type="file" accept=".json,application/json" style="display:none" onchange="importBackup(event)">
   <p class="preview-note">Druckansicht aktiv: So wird die Rechnung beim Drucken oder Speichern als PDF dargestellt. Zum Ändern wieder „Bearbeiten“ auswählen.</p>
-  <p class="hint">Version 4.0 – Schritt 7.6: Das Logo wurde proportional verkleinert und so positioniert, dass es vollständig sichtbar bleibt. Alle übrigen Bereiche bleiben unverändert.</p>
+  <p class="hint">Version 4.0 – Schritt 7.7: Rechnung / Invoice steht auf einer Zeile. Das Logo wurde sichtbar verkleinert und die Tabellenzeilen wurden weiter verdichtet.</p>
 </div>
 
 
@@ -1998,7 +2117,7 @@ calculate();
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", async function () {
     try {
-      const registration = await navigator.serviceWorker.register("./service-worker.js?v=40-step7-6-logo-r1", {
+      const registration = await navigator.serviceWorker.register("./service-worker.js?v=40-step7-7-head-logo-table-r1", {
         updateViaCache: "none"
       });
       await registration.update();
