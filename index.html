@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
-<title>JBB Rechnungs-App 4.0 – Schritt 8.2</title>
+<title>JBB Rechnungs-App 4.0 – Schritt 8.3</title>
 <style>
   :root { --sheet-w: 1000; --sheet-h: 1448; }
   * { box-sizing: border-box; }
@@ -641,11 +641,40 @@ body.print-preview .invoice-summary .summary-field {
   align-items:end;
   margin-top:.8%;
 }
+.post-table-left{
+  min-width:0;
+  display:flex;
+  flex-direction:column;
+  justify-content:flex-end;
+  gap:.7em;
+}
 .post-table-area .invoice-summary{
   width:100%;
   margin:0;
 }
+.post-table-left .tax-note{
+  box-sizing:border-box;
+  width:100%;
+  margin:0 !important;
+  padding:.62em .72em;
+  border-left:2px solid #c8c1bc;
+  background:#fafafa;
+  color:#777;
+  font-size:clamp(5.2px,.63vw,7.5px);
+  line-height:1.28;
+  overflow-wrap:anywhere;
+  word-break:normal;
+  hyphens:auto;
+}
+.post-table-left .tax-note strong{
+  display:block;
+  margin-bottom:.18em;
+  color:#666;
+  font-size:1.03em;
+  line-height:1.18;
+}
 .thankyou-block{
+  box-sizing:border-box;
   width:100%;
   min-width:0;
   padding:0 2% .2% 0;
@@ -663,9 +692,11 @@ body.print-preview .invoice-summary .summary-field {
 }
 .thankyou-block p{margin:.22em 0 0;}
 .thankyou-block .thank-en{font-style:italic;}
-.tax-note{
-  margin-top:1.25% !important;
-  clear:both;
+@media print{
+  .post-table-left .tax-note{
+    font-size:5.7pt;
+    line-height:1.24;
+  }
 }
 
 .invoice-meta input[type="date"]{
@@ -1387,7 +1418,7 @@ body.print-preview .date-print-text{
   <span class="security-status edit-action">🔒 Verschlüsselt</span>
   <input id="backupFile" type="file" accept=".json,application/json" style="display:none" onchange="importBackup(event)">
   <p class="preview-note">Druckansicht aktiv: So wird die Rechnung beim Drucken oder Speichern als PDF dargestellt. Zum Ändern wieder „Bearbeiten“ auswählen.</p>
-  <p class="hint">Version 4.0 – Schritt 8.2: Neue Kunden können jetzt direkt in der Kundenverwaltung angelegt und verschlüsselt gespeichert werden. Alle übrigen Bereiche bleiben unverändert.</p>
+  <p class="hint">Version 4.0 – Schritt 8.3: Die Kleinunternehmerregelung steht im bisherigen Leerbereich; das Feld „Vielen Dank“ befindet sich direkt darunter. Alle übrigen Bereiche bleiben unverändert.</p>
 </div>
 
 
@@ -1573,9 +1604,18 @@ body.print-preview .date-print-text{
     </table>
 
     <div class="post-table-area">
-      
-        <p>Vielen Dank, dass Sie JBB Massage gewählt haben.</p>
-        <p class="thank-en"><strong>Thank you for your visit!</strong><br>Thank you for choosing JBB Massage.</p>
+      <div class="post-table-left">
+        <div class="tax-note" lang="de">
+          <strong>Kleinunternehmerregelung / Small-business exemption:</strong>
+          Für diese Leistung gilt die Steuerbefreiung für Kleinunternehmer gemäß § 19 UStG. Umsatzsteuer wird nicht ausgewiesen.<br>
+          <span lang="en">This service is exempt from VAT under the German small-business regulation pursuant to § 19 UStG. VAT is not shown.</span>
+        </div>
+
+        <div class="thankyou-block">
+          <div class="thank-script">Vielen Dank!</div>
+          <p>Vielen Dank, dass Sie JBB Massage gewählt haben.</p>
+          <p class="thank-en"><strong>Thank you for your visit!</strong><br>Thank you for choosing JBB Massage.</p>
+        </div>
       </div>
 
       <div class="invoice-summary">
@@ -1593,14 +1633,6 @@ body.print-preview .date-print-text{
       </div>
     </div>
     </div>
-
-    <div class="tax-note" style="margin-top:14px;margin-bottom:8px;font-size:13px;line-height:1.45;">
-      <strong>Kleinunternehmerregelung / Small-business exemption:</strong><br>
-      Für diese Leistung gilt die Steuerbefreiung für Kleinunternehmer gemäß § 19 UStG. Umsatzsteuer wird nicht ausgewiesen.<br>
-      This service is exempt from VAT under the German small-business regulation pursuant to § 19 UStG. VAT is not shown.
-    </div>
-<div class="thankyou-block" style="margin-top:10px;max-width:420px;">
-        <div class="thank-script">Vielen Dank!</div>
   </section>
 </div>
 </div>
@@ -2755,7 +2787,7 @@ const JbbSecurity = (() => {
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", async function () {
     try {
-      const registration = await navigator.serviceWorker.register("./service-worker.js?v=40-step8-1-customer-management-create-r1", {
+      const registration = await navigator.serviceWorker.register("./service-worker.js?v=40-step8-3-tax-above-thanks-r1", {
         updateViaCache: "none"
       });
       await registration.update();
