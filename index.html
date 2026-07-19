@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
-<title>JBB Rechnungs-App 4.0 – Schritt 8.6</title>
+<title>JBB Rechnungs-App 4.0 – Schritt 8.7</title>
 <style>
   :root { --sheet-w: 1000; --sheet-h: 1448; }
   * { box-sizing: border-box; }
@@ -1354,6 +1354,20 @@ body.print-preview .date-print-text{
   .security-toolbar-button{display:none!important}
 }
 
+
+/* Schritt 8.7 – größere Bearbeitungsansicht, ohne Änderung der Druckansicht */
+@media screen {
+  body:not(.print-preview) .viewport {
+    overflow:auto;
+    padding:16px;
+  }
+
+  body:not(.print-preview) .sheet {
+    width:clamp(820px, calc(100vw - 32px), 1200px);
+    max-width:none;
+  }
+}
+
 </style>
 
 <link rel="manifest" href="manifest.webmanifest">
@@ -1418,7 +1432,7 @@ body.print-preview .date-print-text{
   <span class="security-status edit-action">🔒 Verschlüsselt</span>
   <input id="backupFile" type="file" accept=".json,application/json" style="display:none" onchange="importBackup(event)">
   <p class="preview-note">Druckansicht aktiv: So wird die Rechnung beim Drucken oder Speichern als PDF dargestellt. Zum Ändern wieder „Bearbeiten“ auswählen.</p>
-  <p class="hint">Version 4.0 – Schritt 8.6: Beim Speichern als PDF wird automatisch ein Dateiname aus Rechnungsnummer, Datum und Kundenname vorgeschlagen. Alle übrigen Bereiche bleiben unverändert.</p>
+  <p class="hint">Version 4.0 – Schritt 8.7: Die Bearbeitungsansicht wird auf dem Bildschirm größer dargestellt. Die Druck- und PDF-Ansicht bleibt vollständig unverändert.</p>
 </div>
 
 
@@ -2873,7 +2887,7 @@ const JbbSecurity = (() => {
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", async function () {
     try {
-      const registration = await navigator.serviceWorker.register("./service-worker.js?v=40-step8-6-auto-pdf-name-r1", {
+      const registration = await navigator.serviceWorker.register("./service-worker.js?v=40-step8-7-larger-editor-r1", {
         updateViaCache: "none"
       });
       await registration.update();
