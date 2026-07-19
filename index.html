@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
-<title>JBB Rechnungs-App 4.0 – Schritt 4</title>
+<title>JBB Rechnungs-App 4.0 – Schritt 5</title>
 <style>
   :root { --sheet-w: 1000; --sheet-h: 1448; }
   * { box-sizing: border-box; }
@@ -499,6 +499,140 @@ body.print-preview .customer-block .customer-field {
   }
 }
 
+
+/* Schritt 5: Rechnungstabelle */
+.invoice-table-block {
+  position:absolute;
+  left:4.7%;
+  right:4.7%;
+  top:37.0%;
+  color:#4d4743;
+  font-family:Arial, sans-serif;
+}
+.invoice-table {
+  width:100%;
+  border-collapse:collapse;
+  table-layout:fixed;
+}
+.invoice-table col.pos { width:7%; }
+.invoice-table col.desc { width:45%; }
+.invoice-table col.qty { width:12%; }
+.invoice-table col.unit { width:18%; }
+.invoice-table col.total { width:18%; }
+
+.invoice-table th {
+  padding:.65em .45em;
+  border-top:1px solid #bdb7b2;
+  border-bottom:1px solid #bdb7b2;
+  color:#777;
+  font-size:clamp(5.8px,.76vw,9px);
+  line-height:1.15;
+  font-weight:700;
+  text-align:left;
+  vertical-align:bottom;
+}
+.invoice-table th:nth-child(1),
+.invoice-table th:nth-child(3),
+.invoice-table th:nth-child(4),
+.invoice-table th:nth-child(5) {
+  text-align:right;
+}
+.invoice-table td {
+  padding:.45em;
+  border-bottom:1px solid #e1ddda;
+  vertical-align:middle;
+}
+.invoice-table .position-number {
+  color:#777;
+  font-size:clamp(6.2px,.84vw,10px);
+  text-align:right;
+}
+.invoice-table .table-field {
+  position:static !important;
+  left:auto !important;
+  top:auto !important;
+  width:100% !important;
+  height:auto !important;
+  min-height:2em !important;
+  padding:.2em .25em !important;
+  border:0 !important;
+  border-radius:0 !important;
+  background:transparent !important;
+  color:#37312e !important;
+  font-size:clamp(6.2px,.86vw,10.5px) !important;
+  line-height:1.25 !important;
+}
+.invoice-table .table-field:focus {
+  outline:none !important;
+  background:#fafafa !important;
+  box-shadow:inset 0 0 0 1px #c8c1bc !important;
+}
+.invoice-table .money,
+.invoice-table .qty {
+  text-align:right !important;
+}
+.invoice-summary {
+  width:42%;
+  margin:.8% 0 0 auto;
+  color:#555;
+}
+.invoice-summary-row {
+  display:grid;
+  grid-template-columns:1fr 42%;
+  align-items:center;
+  gap:5%;
+  min-height:2em;
+  padding:.28em 0;
+  border-bottom:1px solid #e1ddda;
+  font-size:clamp(6px,.82vw,10px);
+}
+.invoice-summary-row label {
+  color:#777;
+  text-align:right;
+}
+.invoice-summary-row.total-row {
+  margin-top:.35em;
+  border-top:1px solid #aaa29c;
+  border-bottom:2px solid #716861;
+  font-weight:700;
+}
+.invoice-summary .summary-field {
+  position:static !important;
+  width:100% !important;
+  height:auto !important;
+  min-height:1.8em !important;
+  padding:.15em .2em !important;
+  border:0 !important;
+  background:transparent !important;
+  color:#342e2a !important;
+  font-size:inherit !important;
+  font-weight:inherit !important;
+  text-align:right !important;
+}
+.tax-note {
+  margin-top:1.5%;
+  padding:.75em .9em;
+  border-left:2px solid #c8c1bc;
+  background:#fafafa;
+  color:#777;
+  font-size:clamp(5.6px,.72vw,8.6px);
+  line-height:1.35;
+}
+.tax-note strong {
+  color:#666;
+}
+body.print-preview .invoice-table .table-field,
+body.print-preview .invoice-summary .summary-field {
+  box-shadow:none !important;
+  background:transparent !important;
+}
+@media print {
+  .invoice-table th { font-size:6.5pt; }
+  .invoice-table .table-field,
+  .invoice-summary .summary-field { font-size:7.2pt !important; }
+  .tax-note { font-size:6.2pt; }
+}
+
 </style>
 
 <link rel="manifest" href="manifest.webmanifest">
@@ -533,7 +667,7 @@ body.print-preview .customer-block .customer-field {
   <button class="secondary edit-action" onclick="document.getElementById('backupFile').click()">Backup importieren</button>
   <input id="backupFile" type="file" accept=".json,application/json" style="display:none" onchange="importBackup(event)">
   <p class="preview-note">Druckansicht aktiv: So wird die Rechnung beim Drucken oder Speichern als PDF dargestellt. Zum Ändern wieder „Bearbeiten“ auswählen.</p>
-  <p class="hint">Version 4.0 – Schritt 4: Kundendaten wurden direkt unter dem Logo als HTML-Eingabefelder ergänzt und mit Speicherung, Kundenverwaltung, Archiv und Backup verknüpft.</p>
+  <p class="hint">Version 4.0 – Schritt 5: Rechnungstabelle und Kleinunternehmerhinweis nach § 19 UStG wurden direkt in der App ergänzt. Es gibt keine Auswahl der Zahlungsart; die App bleibt auf Kartenzahlung ausgerichtet.</p>
 </div>
 
 
@@ -650,23 +784,67 @@ body.print-preview .customer-block .customer-field {
       <input class="field customer-field" id="customerCity" placeholder="Ort / City" autocomplete="address-level2">
     </div>
   </section>
+  <section class="business-base invoice-table-block" aria-label="Rechnungspositionen">
+    <table class="invoice-table">
+      <colgroup>
+        <col class="pos"><col class="desc"><col class="qty"><col class="unit"><col class="total">
+      </colgroup>
+      <thead>
+        <tr>
+          <th>Pos.</th>
+          <th>Leistungsbeschreibung<br>/ Description</th>
+          <th>Menge<br>/ Qty.</th>
+          <th>Einzelpreis<br>/ Unit price</th>
+          <th>Gesamt<br>/ Total</th>
+        </tr>
+      </thead>
+      <tbody>
+        
+      <tr>
+        <td class="position-number">1</td>
+        <td><input class="field table-field description" id="desc1" placeholder="Leistung / Service description"></td>
+        <td><input class="field table-field money qty" id="qty1" type="number" min="0" step="1" value="1" inputmode="decimal"></td>
+        <td><input class="field table-field money unit" id="unit1" type="number" min="0" step="0.01" inputmode="decimal" placeholder="0,00"></td>
+        <td><input class="field table-field money total" id="total1" type="text" readonly></td>
+      </tr>
+      <tr>
+        <td class="position-number">2</td>
+        <td><input class="field table-field description" id="desc2" placeholder="Leistung / Service description"></td>
+        <td><input class="field table-field money qty" id="qty2" type="number" min="0" step="1" value="1" inputmode="decimal"></td>
+        <td><input class="field table-field money unit" id="unit2" type="number" min="0" step="0.01" inputmode="decimal" placeholder="0,00"></td>
+        <td><input class="field table-field money total" id="total2" type="text" readonly></td>
+      </tr>
+      <tr>
+        <td class="position-number">3</td>
+        <td><input class="field table-field description" id="desc3" placeholder="Leistung / Service description"></td>
+        <td><input class="field table-field money qty" id="qty3" type="number" min="0" step="1" value="1" inputmode="decimal"></td>
+        <td><input class="field table-field money unit" id="unit3" type="number" min="0" step="0.01" inputmode="decimal" placeholder="0,00"></td>
+        <td><input class="field table-field money total" id="total3" type="text" readonly></td>
+      </tr>
+      </tbody>
+    </table>
 
+    <div class="invoice-summary">
+      <div class="invoice-summary-row">
+        <label for="subtotal">Zwischensumme / Subtotal</label>
+        <input class="field summary-field money" id="subtotal" type="text" readonly>
+      </div>
+      <div class="invoice-summary-row">
+        <label for="discount">Rabatt / Discount (%)</label>
+        <input class="field summary-field money" id="discount" type="number" min="0" max="100" step="0.01" value="0" inputmode="decimal">
+      </div>
+      <div class="invoice-summary-row total-row">
+        <label for="grandTotal">Gesamtbetrag / Total amount</label>
+        <input class="field summary-field money" id="grandTotal" type="text" readonly>
+      </div>
+    </div>
 
-  <input class="field money qty" id="qty1" type="number" min="0" step="1" inputmode="decimal">
-  <input class="field money unit" id="unit1" type="number" min="0" step="0.01" inputmode="decimal">
-  <input class="field money total" id="total1" type="text" readonly>
-
-  <input class="field money qty" id="qty2" type="number" min="0" step="1" inputmode="decimal">
-  <input class="field money unit" id="unit2" type="number" min="0" step="0.01" inputmode="decimal">
-  <input class="field money total" id="total2" type="text" readonly>
-
-  <input class="field money qty" id="qty3" type="number" min="0" step="1" inputmode="decimal">
-  <input class="field money unit" id="unit3" type="number" min="0" step="0.01" inputmode="decimal">
-  <input class="field money total" id="total3" type="text" readonly>
-
-  <input class="field money" id="subtotal" type="text" readonly>
-  <input class="field money" id="discount" type="number" min="0" max="100" min="0" step="0.01" value="0" inputmode="decimal"><div id="discountPercent" style="position:absolute;left:93.8%;top:60.45%;font-size:10px;font-weight:bold;">%</div>
-  <input class="field money" id="grandTotal" type="text" readonly>
+    <div class="tax-note">
+      <strong>Kleinunternehmerregelung / Small-business exemption:</strong><br>
+      Für diese Leistung gilt die Steuerbefreiung für Kleinunternehmer gemäß § 19 UStG. Umsatzsteuer wird nicht ausgewiesen.<br>
+      This service is exempt from VAT under the German small-business regulation pursuant to § 19 UStG. VAT is not shown.
+    </div>
+  </section>
 </div>
 </div>
 
@@ -674,7 +852,7 @@ body.print-preview .customer-block .customer-field {
 const ids = [
   "invoiceNumber","invoiceDate","serviceDate",
   "customerLastName","customerFirstName","customerStreet","customerPostal","customerCity",
-  "qty1","unit1","qty2","unit2","qty3","unit3",
+  "desc1","qty1","unit1","desc2","qty2","unit2","desc3","qty3","unit3",
   "discount"
 ];
 
@@ -1196,7 +1374,7 @@ calculate();
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", async function () {
     try {
-      const registration = await navigator.serviceWorker.register("./service-worker.js?v=40-customer-fields-r1", {
+      const registration = await navigator.serviceWorker.register("./service-worker.js?v=40-invoice-table-r1", {
         updateViaCache: "none"
       });
       await registration.update();
