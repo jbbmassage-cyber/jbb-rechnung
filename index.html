@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
-<title>JBB Rechnungs-App 4.0 – Schritt 7.5</title>
+<title>JBB Rechnungs-App 4.0 – Schritt 7.5a</title>
 <style>
   :root { --sheet-w: 1000; --sheet-h: 1448; }
   * { box-sizing: border-box; }
@@ -980,61 +980,143 @@ body.print-preview .date-print-text{
 }
 
 
-/* Schritt 7.5 – kompakte Leistungstabelle ohne Kästchen */
+/* Schritt 7.5a – KORREKTUR: wirklich kompakte Tabelle */
 .invoice-table-block{
   top:36.2% !important;
 }
-.invoice-table tbody tr{
-  height:4.15em !important;
+
+.invoice-table{
+  table-layout:fixed !important;
 }
+
+.invoice-table thead th{
+  padding:.28em .34em !important;
+  height:2.35em !important;
+  min-height:0 !important;
+  line-height:1.05 !important;
+}
+
+.invoice-table tbody tr{
+  height:3.05em !important;
+  min-height:0 !important;
+  max-height:none !important;
+}
+
 .invoice-table tbody td{
-  padding:.30em .42em !important;
+  height:3.05em !important;
+  min-height:0 !important;
+  padding:.16em .34em !important;
+  line-height:1.05 !important;
   vertical-align:middle !important;
 }
+
 .service-description-cell{
-  padding-left:.65em !important;
+  padding-left:.50em !important;
 }
+
 .service-fixed-text{
-  display:flex;
-  flex-direction:column;
-  justify-content:center;
-  min-height:2.65em;
-  line-height:1.12;
+  display:flex !important;
+  flex-direction:column !important;
+  justify-content:center !important;
+  min-height:0 !important;
+  height:auto !important;
+  line-height:1.03 !important;
+  overflow:visible !important;
 }
+
 .service-de{
-  color:#302722;
-  font-size:clamp(6.7px,.92vw,10.8px);
-  font-weight:700;
-  white-space:normal;
+  display:block !important;
+  color:#302722 !important;
+  font-size:clamp(5.9px,.80vw,9.2px) !important;
+  font-weight:700 !important;
+  line-height:1.03 !important;
+  margin:0 !important;
+  white-space:normal !important;
 }
+
 .service-en{
-  margin-top:.20em;
-  color:#514945;
-  font-size:clamp(5.9px,.78vw,9.2px);
-  font-weight:400;
-  white-space:normal;
+  display:block !important;
+  margin:.10em 0 0 !important;
+  color:#514945 !important;
+  font-size:clamp(5.2px,.68vw,8px) !important;
+  font-weight:400 !important;
+  line-height:1.02 !important;
+  white-space:normal !important;
 }
+
 .invoice-table .qty,
 .invoice-table .unit,
 .invoice-table .total{
-  height:1.8em !important;
-  min-height:1.8em !important;
+  height:1.35em !important;
+  min-height:1.35em !important;
+  padding:.05em .18em !important;
+  font-size:clamp(5.8px,.78vw,9px) !important;
+  line-height:1 !important;
 }
+
+/* Folgeelemente wieder in den freien Raum ziehen */
 .post-table-area{
-  margin-top:.45% !important;
+  margin-top:.25% !important;
+  column-gap:4% !important;
 }
+
 .thankyou-block{
-  padding-bottom:0 !important;
+  padding:0 1% 0 0 !important;
+  font-size:clamp(5px,.62vw,7.3px) !important;
+  line-height:1.15 !important;
 }
+
+.thankyou-block .thank-script{
+  font-size:clamp(10px,1.35vw,16px) !important;
+  margin-bottom:.08em !important;
+}
+
+.thankyou-block p{
+  margin:.10em 0 0 !important;
+}
+
+.invoice-summary-row{
+  min-height:1.65em !important;
+  padding:.06em 0 !important;
+}
+
+.invoice-summary-row label,
+.invoice-summary-row .summary-field{
+  font-size:clamp(5.2px,.66vw,7.8px) !important;
+  line-height:1.05 !important;
+}
+
 .tax-note{
-  margin-top:.75% !important;
+  margin-top:.45% !important;
+  padding:.45% 1.2% !important;
+  font-size:clamp(4.8px,.60vw,7px) !important;
+  line-height:1.15 !important;
 }
+
 @media print{
-  .invoice-table tbody tr{
-    height:3.95em !important;
+  .invoice-table thead th{
+    height:2.15em !important;
+    padding:.20em .28em !important;
   }
-  .service-de{font-size:7.4pt !important;}
-  .service-en{font-size:6.5pt !important;}
+
+  .invoice-table tbody tr,
+  .invoice-table tbody td{
+    height:2.85em !important;
+  }
+
+  .service-de{
+    font-size:6.4pt !important;
+  }
+
+  .service-en{
+    font-size:5.7pt !important;
+  }
+
+  .invoice-table .qty,
+  .invoice-table .unit,
+  .invoice-table .total{
+    font-size:6.4pt !important;
+  }
 }
 
 </style>
@@ -1071,7 +1153,7 @@ body.print-preview .date-print-text{
   <button class="secondary edit-action" onclick="document.getElementById('backupFile').click()">Backup importieren</button>
   <input id="backupFile" type="file" accept=".json,application/json" style="display:none" onchange="importBackup(event)">
   <p class="preview-note">Druckansicht aktiv: So wird die Rechnung beim Drucken oder Speichern als PDF dargestellt. Zum Ändern wieder „Bearbeiten“ auswählen.</p>
-  <p class="hint">Version 4.0 – Schritt 7.5: Kompakte Rechnungstabelle mit drei festen zweisprachigen Leistungsbeschreibungen ohne Kontrollkästchen und ohne Überschneidungen.</p>
+  <p class="hint">Version 4.0 – Schritt 7.5a: Korrigierte kompakte Leistungstabelle ohne Kästchen. Die drei Positionen wurden so verkleinert, dass Summenbereich, Dankestext, §19-Hinweis und Footer nicht überlappen.</p>
 </div>
 
 
@@ -1934,7 +2016,7 @@ calculate();
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", async function () {
     try {
-      const registration = await navigator.serviceWorker.register("./service-worker.js?v=40-step7-5-compact-table-r1", {
+      const registration = await navigator.serviceWorker.register("./service-worker.js?v=40-step7-5a-compact-fix-r1", {
         updateViaCache: "none"
       });
       await registration.update();
