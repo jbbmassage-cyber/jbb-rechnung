@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
-<title>JBB Rechnungs-App 4.0 – Schritt 8.3</title>
+<title>JBB Rechnungs-App 4.0 – Schritt 8.4</title>
 <style>
   :root { --sheet-w: 1000; --sheet-h: 1448; }
   * { box-sizing: border-box; }
@@ -638,7 +638,7 @@ body.print-preview .invoice-summary .summary-field {
   display:grid;
   grid-template-columns:minmax(0,1fr) 42%;
   column-gap:5%;
-  align-items:end;
+  align-items:start;
   margin-top:.8%;
 }
 .post-table-left{
@@ -1418,7 +1418,7 @@ body.print-preview .date-print-text{
   <span class="security-status edit-action">🔒 Verschlüsselt</span>
   <input id="backupFile" type="file" accept=".json,application/json" style="display:none" onchange="importBackup(event)">
   <p class="preview-note">Druckansicht aktiv: So wird die Rechnung beim Drucken oder Speichern als PDF dargestellt. Zum Ändern wieder „Bearbeiten“ auswählen.</p>
-  <p class="hint">Version 4.0 – Schritt 8.3: Die Kleinunternehmerregelung steht im bisherigen Leerbereich; das Feld „Vielen Dank“ befindet sich direkt darunter. Alle übrigen Bereiche bleiben unverändert.</p>
+  <p class="hint">Version 4.0 – Schritt 8.4: Der Summenblock bleibt direkt an der Leistungstabelle. Kleinunternehmerregelung und „Vielen Dank“ bleiben links untereinander. Alle übrigen Bereiche bleiben unverändert.</p>
 </div>
 
 
@@ -2787,7 +2787,7 @@ const JbbSecurity = (() => {
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", async function () {
     try {
-      const registration = await navigator.serviceWorker.register("./service-worker.js?v=40-step8-3-tax-above-thanks-r1", {
+      const registration = await navigator.serviceWorker.register("./service-worker.js?v=40-step8-4-summary-at-table-r1", {
         updateViaCache: "none"
       });
       await registration.update();
