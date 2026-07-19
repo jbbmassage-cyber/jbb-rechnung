@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
-<title>JBB Rechnungs-App 4.0 – Schritt 8.1</title>
+<title>JBB Rechnungs-App 4.0 – Schritt 8.2</title>
 <style>
   :root { --sheet-w: 1000; --sheet-h: 1448; }
   * { box-sizing: border-box; }
@@ -1387,7 +1387,7 @@ body.print-preview .date-print-text{
   <span class="security-status edit-action">🔒 Verschlüsselt</span>
   <input id="backupFile" type="file" accept=".json,application/json" style="display:none" onchange="importBackup(event)">
   <p class="preview-note">Druckansicht aktiv: So wird die Rechnung beim Drucken oder Speichern als PDF dargestellt. Zum Ändern wieder „Bearbeiten“ auswählen.</p>
-  <p class="hint">Version 4.0 – Schritt 8.1: Neue Kunden können jetzt direkt in der Kundenverwaltung angelegt und verschlüsselt gespeichert werden. Alle übrigen Bereiche bleiben unverändert.</p>
+  <p class="hint">Version 4.0 – Schritt 8.2: Neue Kunden können jetzt direkt in der Kundenverwaltung angelegt und verschlüsselt gespeichert werden. Alle übrigen Bereiche bleiben unverändert.</p>
 </div>
 
 
@@ -1573,8 +1573,7 @@ body.print-preview .date-print-text{
     </table>
 
     <div class="post-table-area">
-      <div class="thankyou-block">
-        <div class="thank-script">Vielen Dank!</div>
+      
         <p>Vielen Dank, dass Sie JBB Massage gewählt haben.</p>
         <p class="thank-en"><strong>Thank you for your visit!</strong><br>Thank you for choosing JBB Massage.</p>
       </div>
@@ -1595,11 +1594,13 @@ body.print-preview .date-print-text{
     </div>
     </div>
 
-    <div class="tax-note">
+    <div class="tax-note" style="margin-top:14px;margin-bottom:8px;font-size:13px;line-height:1.45;">
       <strong>Kleinunternehmerregelung / Small-business exemption:</strong><br>
       Für diese Leistung gilt die Steuerbefreiung für Kleinunternehmer gemäß § 19 UStG. Umsatzsteuer wird nicht ausgewiesen.<br>
       This service is exempt from VAT under the German small-business regulation pursuant to § 19 UStG. VAT is not shown.
     </div>
+<div class="thankyou-block" style="margin-top:10px;max-width:420px;">
+        <div class="thank-script">Vielen Dank!</div>
   </section>
 </div>
 </div>
