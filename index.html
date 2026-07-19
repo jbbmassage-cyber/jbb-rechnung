@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
-<title>JBB Rechnungs-App 4.0 – Schritt 8.8</title>
+<title>JBB Rechnungs-App 4.0 – Schritt 8.9</title>
 <style>
   :root { --sheet-w: 1000; --sheet-h: 1448; }
   * { box-sizing: border-box; }
@@ -1455,6 +1455,39 @@ body.print-preview .date-print-text{
   }
 }
 
+
+/* Schritt 8.9 – größere Schrift ausschließlich im Bearbeitungsmodus */
+@media screen {
+  body:not(.print-preview) .sheet {
+    zoom:1.18;
+  }
+
+  body:not(.print-preview) .toolbar,
+  body:not(.print-preview) .security-card,
+  body:not(.print-preview) dialog {
+    font-size:18px;
+  }
+
+  body:not(.print-preview) .toolbar button,
+  body:not(.print-preview) .toolbar select,
+  body:not(.print-preview) .toolbar input,
+  body:not(.print-preview) .security-card button,
+  body:not(.print-preview) .security-card input,
+  body:not(.print-preview) dialog button,
+  body:not(.print-preview) dialog input,
+  body:not(.print-preview) dialog select,
+  body:not(.print-preview) dialog textarea {
+    font-size:17px !important;
+  }
+
+  body:not(.print-preview) .toolbar .hint,
+  body:not(.print-preview) .toolbar .preview-note,
+  body:not(.print-preview) dialog p,
+  body:not(.print-preview) dialog label {
+    font-size:15px !important;
+  }
+}
+
 </style>
 
 <link rel="manifest" href="manifest.webmanifest">
@@ -1530,7 +1563,7 @@ body.print-preview .date-print-text{
   <span class="security-status edit-action">🔒 Verschlüsselt</span>
   <input id="backupFile" type="file" accept=".json,application/json" style="display:none" onchange="importBackup(event)">
   <p class="preview-note">Druckansicht aktiv: So wird die Rechnung beim Drucken oder Speichern als PDF dargestellt. Zum Ändern wieder „Bearbeiten“ auswählen.</p>
-  <p class="hint">Version 4.0 – Schritt 8.8: Alle Bedienelemente befinden sich in einem seitlich ein- und ausklappbaren Bedienfeld. Druck- und PDF-Ansicht bleiben unverändert.</p>
+  <p class="hint">Version 4.0 – Schritt 8.9: Die Schrift und Bedienelemente sind im gesamten Bearbeitungsmodus größer. Druck- und PDF-Ansicht bleiben unverändert.</p>
 </div>
 
 
@@ -3011,7 +3044,7 @@ const JbbSecurity = (() => {
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", async function () {
     try {
-      const registration = await navigator.serviceWorker.register("./service-worker.js?v=40-step8-8-slide-panel-r1", {
+      const registration = await navigator.serviceWorker.register("./service-worker.js?v=40-step8-9-larger-editor-font-r1", {
         updateViaCache: "none"
       });
       await registration.update();
