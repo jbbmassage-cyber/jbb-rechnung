@@ -1,4 +1,4 @@
-const CACHE_NAME = 'jbb-rechnung-v4-step8-1-20260719-1';
+const CACHE_NAME = 'jbb-rechnung-step8-1-20260719-1237';
 const CORE_ASSETS = [
   "./",
   "./index.html"
@@ -29,7 +29,7 @@ self.addEventListener("fetch", event => {
 
   if (isPageRequest) {
     event.respondWith(
-      fetch(request, { cache: "no-store" })
+      fetch(new Request(request, { cache: "reload" }), { cache: "no-store" })
         .then(response => {
           const copy = response.clone();
           caches.open(CACHE_NAME).then(cache => cache.put("./index.html", copy));
