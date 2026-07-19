@@ -980,65 +980,61 @@ body.print-preview .date-print-text{
 }
 
 
-/* Schritt 7.5 – Leistungsbeschreibung wie Vorlage */
-.service-choice{
-  display:grid;
-  grid-template-columns:auto 1fr;
-  align-items:center;
-  gap:.65em;
-  width:100%;
-  min-height:3.4em;
-  cursor:pointer;
+/* Schritt 7.5 – kompakte Leistungstabelle ohne Kästchen */
+.invoice-table-block{
+  top:36.2% !important;
 }
-.service-check{
-  width:1.35em;
-  height:1.35em;
-  margin:0;
-  accent-color:#4b3529;
-  cursor:pointer;
+.invoice-table tbody tr{
+  height:4.15em !important;
 }
-.service-text{
+.invoice-table tbody td{
+  padding:.30em .42em !important;
+  vertical-align:middle !important;
+}
+.service-description-cell{
+  padding-left:.65em !important;
+}
+.service-fixed-text{
   display:flex;
   flex-direction:column;
-  min-width:0;
-  line-height:1.15;
+  justify-content:center;
+  min-height:2.65em;
+  line-height:1.12;
 }
 .service-de{
   color:#302722;
-  font-size:clamp(7px,.98vw,11.5px);
+  font-size:clamp(6.7px,.92vw,10.8px);
   font-weight:700;
   white-space:normal;
 }
 .service-en{
-  margin-top:.28em;
-  color:#4c4541;
-  font-size:clamp(6.3px,.84vw,10px);
+  margin-top:.20em;
+  color:#514945;
+  font-size:clamp(5.9px,.78vw,9.2px);
   font-weight:400;
   white-space:normal;
 }
-body.print-preview .service-check,
-@media print{
+.invoice-table .qty,
+.invoice-table .unit,
+.invoice-table .total{
+  height:1.8em !important;
+  min-height:1.8em !important;
+}
+.post-table-area{
+  margin-top:.45% !important;
+}
+.thankyou-block{
+  padding-bottom:0 !important;
+}
+.tax-note{
+  margin-top:.75% !important;
 }
 @media print{
-  .service-check{
-    appearance:none;
-    -webkit-appearance:none;
-    width:1.15em;
-    height:1.15em;
-    border:1px solid #4b4039;
-    background:#fff;
-    position:relative;
+  .invoice-table tbody tr{
+    height:3.95em !important;
   }
-  .service-check:checked::after{
-    content:"✓";
-    position:absolute;
-    left:.08em;
-    top:-.18em;
-    font-size:1.15em;
-    line-height:1;
-  }
-  .service-de{font-size:8pt;}
-  .service-en{font-size:7pt;}
+  .service-de{font-size:7.4pt !important;}
+  .service-en{font-size:6.5pt !important;}
 }
 
 </style>
@@ -1075,7 +1071,7 @@ body.print-preview .service-check,
   <button class="secondary edit-action" onclick="document.getElementById('backupFile').click()">Backup importieren</button>
   <input id="backupFile" type="file" accept=".json,application/json" style="display:none" onchange="importBackup(event)">
   <p class="preview-note">Druckansicht aktiv: So wird die Rechnung beim Drucken oder Speichern als PDF dargestellt. Zum Ändern wieder „Bearbeiten“ auswählen.</p>
-  <p class="hint">Version 4.0 – Schritt 7.5: Leistungsbeschreibungen als drei feste Auswahlzeilen mit Kontrollfeld sowie deutscher und englischer Bezeichnung.</p>
+  <p class="hint">Version 4.0 – Schritt 7.5: Kompakte Rechnungstabelle mit drei festen zweisprachigen Leistungsbeschreibungen ohne Kontrollkästchen und ohne Überschneidungen.</p>
 </div>
 
 
@@ -1210,15 +1206,12 @@ body.print-preview .service-check,
         
       <tr>
         <td class="position-number">1</td>
-        <td>
-          <label class="service-choice" for="serviceCheck1">
-            <input class="service-check" id="serviceCheck1" type="checkbox" aria-label="Manuelle Therapie auswählen">
-            <span class="service-text">
-              <span class="service-de">Manuelle Therapie</span>
-              <span class="service-en">Manual therapy</span>
-            </span>
-          </label>
-          <input type="hidden" id="desc1" value="">
+        <td class="service-description-cell">
+          <div class="service-fixed-text">
+            <span class="service-de">Manuelle Therapie</span>
+            <span class="service-en">Manual therapy</span>
+          </div>
+          <input type="hidden" id="desc1" value="Manuelle Therapie / Manual therapy">
         </td>
         <td><input class="field table-field money qty" id="qty1" type="number" min="0" step="1" value="1" inputmode="decimal"></td>
         <td><input class="field table-field money unit" id="unit1" type="number" min="0" step="0.01" inputmode="decimal" placeholder="0,00"></td>
@@ -1226,15 +1219,12 @@ body.print-preview .service-check,
       </tr>
       <tr>
         <td class="position-number">2</td>
-        <td>
-          <label class="service-choice" for="serviceCheck2">
-            <input class="service-check" id="serviceCheck2" type="checkbox" aria-label="Weitere Anwendungen im physiotherapeutischen Bereich auswählen">
-            <span class="service-text">
-              <span class="service-de">Weitere Anwendungen im physiotherapeutischen Bereich</span>
-              <span class="service-en">Other applications in physiotherapy</span>
-            </span>
-          </label>
-          <input type="hidden" id="desc2" value="">
+        <td class="service-description-cell">
+          <div class="service-fixed-text">
+            <span class="service-de">Weitere Anwendungen im physiotherapeutischen Bereich</span>
+            <span class="service-en">Other applications in physiotherapy</span>
+          </div>
+          <input type="hidden" id="desc2" value="Weitere Anwendungen im physiotherapeutischen Bereich / Other applications in physiotherapy">
         </td>
         <td><input class="field table-field money qty" id="qty2" type="number" min="0" step="1" value="1" inputmode="decimal"></td>
         <td><input class="field table-field money unit" id="unit2" type="number" min="0" step="0.01" inputmode="decimal" placeholder="0,00"></td>
@@ -1242,15 +1232,12 @@ body.print-preview .service-check,
       </tr>
       <tr>
         <td class="position-number">3</td>
-        <td>
-          <label class="service-choice" for="serviceCheck3">
-            <input class="service-check" id="serviceCheck3" type="checkbox" aria-label="Massagen auswählen">
-            <span class="service-text">
-              <span class="service-de">Massagen</span>
-              <span class="service-en">Massages</span>
-            </span>
-          </label>
-          <input type="hidden" id="desc3" value="">
+        <td class="service-description-cell">
+          <div class="service-fixed-text">
+            <span class="service-de">Massagen</span>
+            <span class="service-en">Massages</span>
+          </div>
+          <input type="hidden" id="desc3" value="Massagen / Massages">
         </td>
         <td><input class="field table-field money qty" id="qty3" type="number" min="0" step="1" value="1" inputmode="decimal"></td>
         <td><input class="field table-field money unit" id="unit3" type="number" min="0" step="0.01" inputmode="decimal" placeholder="0,00"></td>
@@ -1296,34 +1283,22 @@ const ids = [
   "invoiceNumber","invoiceDate","serviceDate",
   "customerLastName","customerFirstName","customerStreet","customerPostal","customerCity",
   "desc1","qty1","unit1","desc2","qty2","unit2","desc3","qty3","unit3",
-  "serviceCheck1","serviceCheck2","serviceCheck3",
   "discount"
 ];
 
 
-const serviceDescriptions = {
-  1: { de: "Manuelle Therapie", en: "Manual therapy" },
-  2: { de: "Weitere Anwendungen im physiotherapeutischen Bereich", en: "Other applications in physiotherapy" },
-  3: { de: "Massagen", en: "Massages" }
+const fixedServiceDescriptions = {
+  desc1: "Manuelle Therapie / Manual therapy",
+  desc2: "Weitere Anwendungen im physiotherapeutischen Bereich / Other applications in physiotherapy",
+  desc3: "Massagen / Massages"
 };
 
-function syncServiceDescriptions() {
-  [1,2,3].forEach(i => {
-    const check = document.getElementById("serviceCheck" + i);
-    const desc = document.getElementById("desc" + i);
-    if (!check || !desc) return;
-    desc.value = check.checked
-      ? serviceDescriptions[i].de + " / " + serviceDescriptions[i].en
-      : "";
+function ensureFixedServiceDescriptions() {
+  Object.entries(fixedServiceDescriptions).forEach(([id, value]) => {
+    const field = document.getElementById(id);
+    if (field) field.value = value;
   });
 }
-
-[1,2,3].forEach(i => {
-  document.getElementById("serviceCheck" + i)?.addEventListener("change", function () {
-    syncServiceDescriptions();
-    calculate();
-  });
-});
 
 function euro(n) {
   return Number.isFinite(n) ? n.toFixed(2).replace(".", ",") + " €" : "";
@@ -1333,7 +1308,7 @@ function num(id) {
   return Number.isFinite(v) ? v : 0;
 }
 function calculate() {
-  syncServiceDescriptions();
+  ensureFixedServiceDescriptions();
   let sub = 0;
   for (let i=1;i<=3;i++) {
     const total = num("qty"+i) * num("unit"+i);
@@ -1773,11 +1748,11 @@ function migrateLegacyCustomerAddress(data) {
 }
 
 function collectInvoiceData() {
-  syncServiceDescriptions();
+  ensureFixedServiceDescriptions();
   const data = {};
   ids.forEach(id => {
     const el = document.getElementById(id);
-    data[id] = el.type === "checkbox" ? el.checked : el.value;
+    data[id] = el.value;
   });
   data.total1 = document.getElementById("total1").value;
   data.total2 = document.getElementById("total2").value;
@@ -1898,11 +1873,11 @@ function setViewMode(mode) {
 }
 
 function saveData() {
-  syncServiceDescriptions();
+  ensureFixedServiceDescriptions();
   const data = {};
   ids.forEach(id => {
     const el = document.getElementById(id);
-    data[id] = el.type === "checkbox" ? el.checked : el.value;
+    data[id] = el.value;
   });
   localStorage.setItem("jbbInvoice", JSON.stringify(data));
   alert("Die Eingaben wurden auf diesem Gerät gespeichert.");
@@ -1927,8 +1902,7 @@ function loadData() {
         const match = String(data[id] || "").match(/^(\d{4})-(\d+)$/);
         el.value = match ? formatInvoiceNumber(Number(match[1]), Number(match[2])) : data[id];
       } else {
-        if (el.type === "checkbox") el.checked = Boolean(data[id]);
-      else el.value = data[id];
+        el.value = data[id];
       }
     });
   } catch(e) {}
@@ -1941,8 +1915,8 @@ function clearData() {
   if (!confirm("Alle Eingaben für eine neue Rechnung löschen?")) return;
   ids.forEach(id => {
     const el = document.getElementById(id);
-    if (el.type === "checkbox") el.checked = false;
-    else el.value = "";
+    if (["desc1","desc2","desc3"].includes(id)) return;
+    el.value = "";
   });
   document.getElementById("discount").value = "0";
   document.getElementById("customerLastName").dataset.customerId = "";
@@ -1960,7 +1934,7 @@ calculate();
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", async function () {
     try {
-      const registration = await navigator.serviceWorker.register("./service-worker.js?v=40-step7-5-services-r1", {
+      const registration = await navigator.serviceWorker.register("./service-worker.js?v=40-step7-5-compact-table-r1", {
         updateViaCache: "none"
       });
       await registration.update();
