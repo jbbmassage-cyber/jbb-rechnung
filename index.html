@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
-<title>JBB Rechnungs-App 4.0 – Schritt 3</title>
+<title>JBB Rechnungs-App 4.0 – Schritt 4</title>
 <style>
   :root { --sheet-w: 1000; --sheet-h: 1448; }
   * { box-sizing: border-box; }
@@ -434,6 +434,71 @@ body.print-preview .invoice-meta .field {
   }
 }
 
+
+/* Schritt 4: Kundendaten direkt unter dem Logo */
+.customer-block {
+  position:absolute;
+  left:4.7%;
+  top:20.7%;
+  width:47.5%;
+  color:#555;
+  font-family:Arial, sans-serif;
+}
+.customer-block h2 {
+  margin:0 0 2.4%;
+  padding-bottom:1.1%;
+  border-bottom:1px solid #d4cfcb;
+  color:#777;
+  font-size:clamp(6.5px,.90vw,10.5px);
+  line-height:1.2;
+  font-weight:700;
+  letter-spacing:.06em;
+}
+.customer-row {
+  display:grid;
+  gap:2.3%;
+  margin-bottom:2.4%;
+}
+.customer-row.two-name { grid-template-columns:1fr 1fr; }
+.customer-row.postal-city { grid-template-columns:28% 1fr; }
+
+.customer-block .customer-field {
+  position:static !important;
+  left:auto !important;
+  top:auto !important;
+  width:100% !important;
+  height:auto !important;
+  min-height:1.85em !important;
+  resize:none;
+  padding:.18em .35em !important;
+  border:0 !important;
+  border-bottom:1px solid #c9c3be !important;
+  border-radius:0 !important;
+  background:transparent !important;
+  color:#39322e !important;
+  font-size:clamp(6.5px,.88vw,10.5px) !important;
+  line-height:1.25 !important;
+}
+.customer-block .customer-field:focus {
+  outline:none !important;
+  border-bottom-color:#5d4b42 !important;
+  box-shadow:none !important;
+  background:#fff !important;
+}
+.customer-block .customer-field::placeholder {
+  color:#9a9490;
+  opacity:1;
+}
+body.print-preview .customer-block .customer-field {
+  border-bottom-color:#ded9d5 !important;
+}
+@media print {
+  .customer-block .customer-field {
+    border-bottom-color:#ded9d5 !important;
+    font-size:7.2pt !important;
+  }
+}
+
 </style>
 
 <link rel="manifest" href="manifest.webmanifest">
@@ -468,7 +533,7 @@ body.print-preview .invoice-meta .field {
   <button class="secondary edit-action" onclick="document.getElementById('backupFile').click()">Backup importieren</button>
   <input id="backupFile" type="file" accept=".json,application/json" style="display:none" onchange="importBackup(event)">
   <p class="preview-note">Druckansicht aktiv: So wird die Rechnung beim Drucken oder Speichern als PDF dargestellt. Zum Ändern wieder „Bearbeiten“ auswählen.</p>
-  <p class="hint">Version 4.0 – Schritt 3: Transparentes Logo sowie Rechnungsüberschrift, Rechnungsnummer, Ausstellungsdatum und Leistungsdatum wurden direkt in das HTML-Layout eingebaut. Automatische Nummerierung, Datumsfunktionen, Speicherung, Archiv und Backup bleiben verknüpft.</p>
+  <p class="hint">Version 4.0 – Schritt 4: Kundendaten wurden direkt unter dem Logo als HTML-Eingabefelder ergänzt und mit Speicherung, Kundenverwaltung, Archiv und Backup verknüpft.</p>
 </div>
 
 
@@ -571,10 +636,20 @@ body.print-preview .invoice-meta .field {
       <input class="field" id="serviceDate" type="text" inputmode="numeric" maxlength="10" placeholder="TT.MM.JJJJ" aria-label="Leistungsdatum">
     </div>
   </section>
-  <div id="customerHeading">KUNDENDATEN / CUSTOMER</div>
-  <input class="field customer-field" id="customerLastName" placeholder="Name">
-  <input class="field customer-field" id="customerFirstName" placeholder="Vorname">
-  <textarea class="field customer-field" id="customerAddress" placeholder="Adresse" rows="2"></textarea>
+  <section class="business-base customer-block" aria-label="Kundendaten">
+    <h2>KUNDENDATEN / CUSTOMER DETAILS</h2>
+    <div class="customer-row two-name">
+      <input class="field customer-field" id="customerLastName" placeholder="Name / Surname" autocomplete="family-name">
+      <input class="field customer-field" id="customerFirstName" placeholder="Vorname / First name" autocomplete="given-name">
+    </div>
+    <div class="customer-row">
+      <input class="field customer-field" id="customerStreet" placeholder="Adresse / Address" autocomplete="street-address">
+    </div>
+    <div class="customer-row postal-city">
+      <input class="field customer-field" id="customerPostal" placeholder="PLZ / ZIP" inputmode="numeric" autocomplete="postal-code">
+      <input class="field customer-field" id="customerCity" placeholder="Ort / City" autocomplete="address-level2">
+    </div>
+  </section>
 
 
   <input class="field money qty" id="qty1" type="number" min="0" step="1" inputmode="decimal">
@@ -598,7 +673,7 @@ body.print-preview .invoice-meta .field {
 <script>
 const ids = [
   "invoiceNumber","invoiceDate","serviceDate",
-  "customerLastName","customerFirstName","customerAddress",
+  "customerLastName","customerFirstName","customerStreet","customerPostal","customerCity",
   "qty1","unit1","qty2","unit2","qty3","unit3",
   "discount"
 ];
@@ -751,6 +826,24 @@ function importBackup(event) {
 
 
 
+
+function syncVisibleCustomerToArchiveFields() {
+  const map = {
+    archiveCustomerStreet: "customerStreet",
+    archiveCustomerPostal: "customerPostal",
+    archiveCustomerCity: "customerCity"
+  };
+  Object.entries(map).forEach(([archiveId, visibleId]) => {
+    const archiveField = document.getElementById(archiveId);
+    const visibleField = document.getElementById(visibleId);
+    if (archiveField && visibleField) archiveField.value = visibleField.value;
+  });
+}
+
+["customerStreet","customerPostal","customerCity"].forEach(id => {
+  document.getElementById(id).addEventListener("input", syncVisibleCustomerToArchiveFields);
+});
+
 function getCustomers() {
   try {
     return JSON.parse(localStorage.getItem("jbbCustomers") || "[]");
@@ -765,9 +858,9 @@ function currentCustomerData() {
     lastName: document.getElementById("customerLastName").value.trim(),
     firstName: document.getElementById("customerFirstName").value.trim(),
     company: document.getElementById("archiveCustomerCompany").value.trim(),
-    street: document.getElementById("archiveCustomerStreet").value.trim(),
-    postal: document.getElementById("archiveCustomerPostal").value.trim(),
-    city: document.getElementById("archiveCustomerCity").value.trim(),
+    street: document.getElementById("customerStreet").value.trim(),
+    postal: document.getElementById("customerPostal").value.trim(),
+    city: document.getElementById("customerCity").value.trim(),
     country: document.getElementById("archiveCustomerCountry").value.trim(),
     phone: document.getElementById("archiveCustomerPhone").value.trim(),
     email: document.getElementById("archiveCustomerEmail").value.trim()
@@ -783,6 +876,7 @@ function customerAddressText(customer) {
 }
 
 function saveCustomer() {
+  syncVisibleCustomerToArchiveFields();
   const customer = currentCustomerData();
   if (!customer.lastName || !customer.firstName) {
     alert("Bitte Vorname und Name eintragen.");
@@ -808,7 +902,7 @@ function saveCustomer() {
 
   localStorage.setItem("jbbCustomers", JSON.stringify(customers));
   document.getElementById("customerLastName").dataset.customerId = customer.id;
-  document.getElementById("customerAddress").value = customerAddressText(customer);
+  loadArchiveCustomerFields(customer);
   saveData();
   alert("Kunde wurde gespeichert.");
 }
@@ -889,7 +983,9 @@ function selectCustomer(id) {
   document.getElementById("customerLastName").value = customer.lastName || "";
   document.getElementById("customerFirstName").value = customer.firstName || "";
   document.getElementById("customerLastName").dataset.customerId = customer.id || "";
-  document.getElementById("customerAddress").value = customerAddressText(customer);
+  document.getElementById("customerStreet").value = customer.street || "";
+  document.getElementById("customerPostal").value = customer.postal || "";
+  document.getElementById("customerCity").value = customer.city || "";
   loadArchiveCustomerFields(customer);
 
   saveData();
@@ -908,6 +1004,25 @@ function deleteCustomer(id) {
     JSON.stringify(customers.filter(item => item.id !== id))
   );
   renderCustomers();
+}
+
+
+function migrateLegacyCustomerAddress(data) {
+  if (!data || !data.customerAddress) return data;
+  if (data.customerStreet || data.customerPostal || data.customerCity) return data;
+
+  const lines = String(data.customerAddress).split(/\r?\n/).map(v => v.trim()).filter(Boolean);
+  data.customerStreet = lines[0] || "";
+  if (lines[1]) {
+    const match = lines[1].match(/^(\S+)\s+(.*)$/);
+    if (match) {
+      data.customerPostal = match[1] || "";
+      data.customerCity = match[2] || "";
+    } else {
+      data.customerCity = lines[1];
+    }
+  }
+  return data;
 }
 
 function collectInvoiceData() {
@@ -962,6 +1077,9 @@ function renderArchive() {
         data.subtotal || "",
         data.customerLastName || "",
         data.customerFirstName || "",
+        data.customerStreet || "",
+        data.customerPostal || "",
+        data.customerCity || "",
         data.customerAddress || ""
       ].join(" ").toLowerCase();
       return searchable.includes(query);
@@ -995,7 +1113,7 @@ function renderArchive() {
 
 function loadArchivedInvoice(number) {
   const archive = JSON.parse(localStorage.getItem("jbbInvoiceArchive") || "{}");
-  const data = archive[number];
+  const data = migrateLegacyCustomerAddress(archive[number]);
   if (!data) return;
 
   ids.forEach(id => {
@@ -1048,7 +1166,7 @@ function loadData() {
     return;
   }
   try {
-    const data = JSON.parse(raw);
+    const data = migrateLegacyCustomerAddress(JSON.parse(raw));
     ids.forEach(id => {
       const el = document.getElementById(id);
       if (!(id in data)) return;
@@ -1078,7 +1196,7 @@ calculate();
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", async function () {
     try {
-      const registration = await navigator.serviceWorker.register("./service-worker.js?v=30-preview-r1", {
+      const registration = await navigator.serviceWorker.register("./service-worker.js?v=40-customer-fields-r1", {
         updateViaCache: "none"
       });
       await registration.update();
