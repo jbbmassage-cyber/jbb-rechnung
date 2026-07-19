@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
-<title>JBB Rechnungs-App 4.0 – Schritt 8.0 Sicherheit</title>
+<title>JBB Rechnungs-App 4.0 – Schritt 8.1</title>
 <style>
   :root { --sheet-w: 1000; --sheet-h: 1448; }
   * { box-sizing: border-box; }
@@ -1387,7 +1387,7 @@ body.print-preview .date-print-text{
   <span class="security-status edit-action">🔒 Verschlüsselt</span>
   <input id="backupFile" type="file" accept=".json,application/json" style="display:none" onchange="importBackup(event)">
   <p class="preview-note">Druckansicht aktiv: So wird die Rechnung beim Drucken oder Speichern als PDF dargestellt. Zum Ändern wieder „Bearbeiten“ auswählen.</p>
-  <p class="hint">Version 4.0 – Schritt 8.0: Passwortschutz, AES-256-Verschlüsselung, automatische Sperre und verschlüsselte Backups. Das Rechnungsdesign bleibt unverändert.</p>
+  <p class="hint">Version 4.0 – Schritt 8.1: Neue Kunden können jetzt direkt in der Kundenverwaltung angelegt und verschlüsselt gespeichert werden. Alle übrigen Bereiche bleiben unverändert.</p>
 </div>
 
 
@@ -1397,14 +1397,24 @@ body.print-preview .date-print-text{
     <button class="secondary" onclick="toggleCustomerPanel()">Schließen</button>
   </div>
   
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px;">
-    <input id="archiveCustomerCompany" placeholder="Firma (optional)" style="padding:9px;">
-    <input id="archiveCustomerPhone" placeholder="Telefon (optional)" inputmode="tel" style="padding:9px;">
-    <input id="archiveCustomerStreet" placeholder="Straße und Hausnummer" style="padding:9px;grid-column:1 / -1;">
-    <input id="archiveCustomerPostal" placeholder="PLZ" style="padding:9px;">
-    <input id="archiveCustomerCity" placeholder="Ort" style="padding:9px;">
-    <input id="archiveCustomerCountry" placeholder="Land" style="padding:9px;">
-    <input id="archiveCustomerEmail" placeholder="E-Mail (optional)" inputmode="email" style="padding:9px;">
+  <div style="margin-top:12px;padding:12px;border:1px solid #ddd;border-radius:10px;background:#faf9f8;">
+    <strong>Neuen Kunden anlegen</strong>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px;">
+      <input id="managementCustomerFirstName" placeholder="Vorname *" autocomplete="given-name" style="padding:9px;">
+      <input id="managementCustomerLastName" placeholder="Nachname *" autocomplete="family-name" style="padding:9px;">
+      <input id="archiveCustomerCompany" placeholder="Firma (optional)" autocomplete="organization" style="padding:9px;">
+      <input id="archiveCustomerPhone" placeholder="Telefon (optional)" inputmode="tel" autocomplete="tel" style="padding:9px;">
+      <input id="archiveCustomerStreet" placeholder="Straße und Hausnummer" autocomplete="street-address" style="padding:9px;grid-column:1 / -1;">
+      <input id="archiveCustomerPostal" placeholder="PLZ" autocomplete="postal-code" style="padding:9px;">
+      <input id="archiveCustomerCity" placeholder="Ort" autocomplete="address-level2" style="padding:9px;">
+      <input id="archiveCustomerCountry" placeholder="Land" autocomplete="country-name" style="padding:9px;">
+      <input id="archiveCustomerEmail" placeholder="E-Mail (optional)" inputmode="email" autocomplete="email" style="padding:9px;">
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;">
+      <button type="button" onclick="saveCustomerFromManagement()">Neuen Kunden speichern</button>
+      <button type="button" class="secondary" onclick="clearCustomerManagementForm()">Felder leeren</button>
+    </div>
+    <p id="customerManagementMessage" style="min-height:1.2em;margin:8px 0 0;font-size:12px;color:#555;" aria-live="polite"></p>
   </div>
 
   <input id="customerSearch" type="search" placeholder="Kunden nach Name, Firma, Ort oder E-Mail suchen"
@@ -1924,7 +1934,7 @@ function toggleCustomerPanel() {
   const show = panel.style.display === "none" || !panel.style.display;
   panel.style.display = show ? "block" : "none";
   if (show) {
-    loadArchiveCustomerFields();
+    clearCustomerManagementForm();
     renderCustomers();
   }
 }
@@ -1938,6 +1948,77 @@ function loadArchiveCustomerFields(customer) {
   document.getElementById("archiveCustomerCountry").value = selected.country || "";
   document.getElementById("archiveCustomerPhone").value = selected.phone || "";
   document.getElementById("archiveCustomerEmail").value = selected.email || "";
+}
+
+
+function clearCustomerManagementForm() {
+  [
+    "managementCustomerFirstName",
+    "managementCustomerLastName",
+    "archiveCustomerCompany",
+    "archiveCustomerPhone",
+    "archiveCustomerStreet",
+    "archiveCustomerPostal",
+    "archiveCustomerCity",
+    "archiveCustomerCountry",
+    "archiveCustomerEmail"
+  ].forEach(id => {
+    const field = document.getElementById(id);
+    if (field) field.value = "";
+  });
+
+  const message = document.getElementById("customerManagementMessage");
+  if (message) message.textContent = "";
+  document.getElementById("managementCustomerFirstName")?.focus();
+}
+
+function saveCustomerFromManagement() {
+  const firstName = document.getElementById("managementCustomerFirstName").value.trim();
+  const lastName = document.getElementById("managementCustomerLastName").value.trim();
+  const email = document.getElementById("archiveCustomerEmail").value.trim();
+
+  const message = document.getElementById("customerManagementMessage");
+  if (message) message.textContent = "";
+
+  if (!firstName || !lastName) {
+    if (message) message.textContent = "Bitte Vorname und Nachname eintragen.";
+    return;
+  }
+
+  const customers = getCustomers();
+  const duplicate = customers.find(customer =>
+    (customer.firstName || "").trim().toLowerCase() === firstName.toLowerCase() &&
+    (customer.lastName || "").trim().toLowerCase() === lastName.toLowerCase() &&
+    (customer.email || "").trim().toLowerCase() === email.toLowerCase()
+  );
+
+  if (duplicate) {
+    if (message) message.textContent = "Dieser Kunde ist bereits gespeichert.";
+    return;
+  }
+
+  const customer = {
+    id: "customer-" + Date.now(),
+    firstName,
+    lastName,
+    company: document.getElementById("archiveCustomerCompany").value.trim(),
+    street: document.getElementById("archiveCustomerStreet").value.trim(),
+    postal: document.getElementById("archiveCustomerPostal").value.trim(),
+    city: document.getElementById("archiveCustomerCity").value.trim(),
+    country: document.getElementById("archiveCustomerCountry").value.trim(),
+    phone: document.getElementById("archiveCustomerPhone").value.trim(),
+    email
+  };
+
+  customers.push(customer);
+  secureStorage.setItem("jbbCustomers", JSON.stringify(customers));
+  renderCustomers();
+
+  clearCustomerManagementForm();
+  if (message) {
+    message.textContent = "Kunde wurde verschlüsselt gespeichert.";
+    message.style.color = "#2f6b3a";
+  }
 }
 
 function renderCustomers() {
@@ -2673,7 +2754,7 @@ const JbbSecurity = (() => {
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", async function () {
     try {
-      const registration = await navigator.serviceWorker.register("./service-worker.js?v=40-step8-0-security-r1", {
+      const registration = await navigator.serviceWorker.register("./service-worker.js?v=40-step8-1-customer-management-create-r1", {
         updateViaCache: "none"
       });
       await registration.update();
