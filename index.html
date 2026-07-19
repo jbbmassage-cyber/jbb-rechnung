@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
-<title>JBB Rechnungs-App 4.0 – Schritt 7.1</title>
+<title>JBB Rechnungs-App 4.0 – Schritt 7.2</title>
 <style>
   :root { --sheet-w: 1000; --sheet-h: 1448; }
   * { box-sizing: border-box; }
@@ -732,6 +732,84 @@ body.print-preview .invoice-summary .summary-field {
   }
 }
 
+
+/* Schritt 7.2 – Layoutkorrektur nach Mobiltest */
+.customer-block{
+  left:4.7% !important;
+  top:19.4% !important;
+  width:61% !important;
+}
+.customer-block h2{
+  margin-bottom:1.4% !important;
+}
+.customer-row{
+  margin-bottom:1.15% !important;
+}
+.customer-row.two-name{
+  grid-template-columns:1fr !important;
+}
+.customer-row.postal-city{
+  grid-template-columns:28% 1fr !important;
+  gap:2.5% !important;
+}
+.customer-block .customer-field{
+  width:100% !important;
+  min-width:0 !important;
+  box-sizing:border-box !important;
+  min-height:2.05em !important;
+  padding:.22em .45em !important;
+  font-size:clamp(7.5px,1.02vw,12px) !important;
+  line-height:1.25 !important;
+  white-space:nowrap !important;
+  overflow:visible !important;
+  text-overflow:clip !important;
+}
+#customerLastName,
+#customerFirstName,
+#customerStreet,
+#customerCity{
+  width:100% !important;
+}
+.invoice-table-block{
+  top:36.2% !important;
+}
+
+.invoice-meta{
+  width:42% !important;
+}
+.invoice-meta-row{
+  grid-template-columns:1fr 38% !important;
+  column-gap:3% !important;
+}
+.invoice-meta #invoiceNumber,
+.invoice-meta #invoiceDate,
+.invoice-meta #serviceDate{
+  width:100% !important;
+  min-width:0 !important;
+  box-sizing:border-box !important;
+  padding:.16em .28em !important;
+  font-size:clamp(7.5px,1.05vw,12px) !important;
+}
+.invoice-meta #invoiceNumber{
+  font-size:clamp(8px,1.14vw,13px) !important;
+}
+@media print{
+  .customer-block{
+    top:19.4% !important;
+    width:61% !important;
+  }
+  .customer-block .customer-field{
+    font-size:7.8pt !important;
+  }
+  .invoice-table-block{
+    top:36.2% !important;
+  }
+  .invoice-meta #invoiceDate,
+  .invoice-meta #serviceDate{
+    font-size:7.6pt !important;
+  }
+}
+
 </style>
 
 <link rel="manifest" href="manifest.webmanifest">
@@ -766,7 +844,7 @@ body.print-preview .invoice-summary .summary-field {
   <button class="secondary edit-action" onclick="document.getElementById('backupFile').click()">Backup importieren</button>
   <input id="backupFile" type="file" accept=".json,application/json" style="display:none" onchange="importBackup(event)">
   <p class="preview-note">Druckansicht aktiv: So wird die Rechnung beim Drucken oder Speichern als PDF dargestellt. Zum Ändern wieder „Bearbeiten“ auswählen.</p>
-  <p class="hint">Version 4.0 – Schritt 7.1: Größere Kundendatenfelder, vollständig sichtbare Namen, korrekt dargestellte fortlaufende Rechnungsnummer JJJJ-001 und automatisch auf heute gesetzte Datumsfelder.</p>
+  <p class="hint">Version 4.0 – Schritt 7.2: Kundendatenblock neu positioniert, Namensfelder verbreitert und Datumsfelder vollständig sichtbar gemacht.</p>
 </div>
 
 
@@ -1570,7 +1648,7 @@ calculate();
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", async function () {
     try {
-      const registration = await navigator.serviceWorker.register("./service-worker.js?v=40-step7-1-fields-number-date-r1", {
+      const registration = await navigator.serviceWorker.register("./service-worker.js?v=40-step7-2-layout-r1", {
         updateViaCache: "none"
       });
       await registration.update();
