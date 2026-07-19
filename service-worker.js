@@ -1,4 +1,4 @@
-const CACHE_NAME = 'jbb-rechnung-v4-step7-8-logo-transparent-20260719-1';
+const CACHE_NAME = 'jbb-rechnung-v4-step7-9-full-transparent-logo-20260719-2';
 const CORE_ASSETS = [
   "./",
   "./index.html"
