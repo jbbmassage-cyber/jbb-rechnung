@@ -1,4 +1,4 @@
-const CACHE_NAME = 'jbb-rechnung-v4-step8-7-larger-editor-20260719-1';
+const CACHE_NAME = 'jbb-rechnung-v4-step8-8-slide-panel-20260719-1';
 const CORE_ASSETS = [
   "./",
   "./index.html"

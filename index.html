@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
-<title>JBB Rechnungs-App 4.0 – Schritt 8.7</title>
+<title>JBB Rechnungs-App 4.0 – Schritt 8.8</title>
 <style>
   :root { --sheet-w: 1000; --sheet-h: 1448; }
   * { box-sizing: border-box; }
@@ -1368,6 +1368,93 @@ body.print-preview .date-print-text{
   }
 }
 
+
+/* Schritt 8.8 – ausklappbares Bedienfeld, nur Bildschirmansicht */
+@media screen {
+  .toolbar-toggle {
+    position:fixed;
+    top:14px;
+    right:14px;
+    z-index:1202;
+    width:48px;
+    height:48px;
+    padding:0;
+    border-radius:50%;
+    box-shadow:0 3px 14px rgba(0,0,0,.28);
+    font-size:23px;
+    line-height:1;
+  }
+
+  .toolbar-backdrop {
+    position:fixed;
+    inset:0;
+    z-index:1199;
+    background:rgba(36,24,18,.28);
+    opacity:0;
+    pointer-events:none;
+    transition:opacity .22s ease;
+  }
+
+  .toolbar {
+    position:fixed;
+    top:0;
+    right:0;
+    z-index:1201;
+    width:min(390px, calc(100vw - 28px));
+    height:100dvh;
+    padding:76px 14px 18px;
+    display:flex;
+    flex-direction:column;
+    flex-wrap:nowrap;
+    align-items:stretch;
+    gap:9px;
+    overflow-y:auto;
+    background:#fff;
+    box-shadow:-5px 0 24px rgba(0,0,0,.24);
+    transform:translateX(105%);
+    transition:transform .24s ease;
+  }
+
+  .toolbar button,
+  .toolbar .view-selector {
+    width:100%;
+  }
+
+  .toolbar .view-selector {
+    justify-content:space-between;
+  }
+
+  .toolbar .view-selector select {
+    flex:1;
+    min-width:0;
+  }
+
+  .toolbar .hint,
+  .toolbar .preview-note {
+    flex:0 0 auto;
+  }
+
+  body.toolbar-open .toolbar {
+    transform:translateX(0);
+  }
+
+  body.toolbar-open .toolbar-backdrop {
+    opacity:1;
+    pointer-events:auto;
+  }
+
+  body.toolbar-open {
+    overflow:hidden;
+  }
+}
+
+@media print {
+  .toolbar-toggle,
+  .toolbar-backdrop {
+    display:none !important;
+  }
+}
+
 </style>
 
 <link rel="manifest" href="manifest.webmanifest">
@@ -1409,7 +1496,18 @@ body.print-preview .date-print-text{
   </div>
 </div>
 
-<div class="toolbar">
+<button
+  id="toolbarToggle"
+  class="toolbar-toggle"
+  type="button"
+  aria-controls="mainToolbar"
+  aria-expanded="false"
+  aria-label="Bedienfeld öffnen"
+  onclick="toggleToolbar()"
+>☰</button>
+<div class="toolbar-backdrop" onclick="closeToolbar()" aria-hidden="true"></div>
+
+<div class="toolbar" id="mainToolbar" aria-hidden="true">
   <label class="view-selector" for="viewMode">Ansicht
     <select id="viewMode" onchange="setViewMode(this.value)" aria-label="Ansicht auswählen">
       <option value="edit">Bearbeiten</option>
@@ -1432,7 +1530,7 @@ body.print-preview .date-print-text{
   <span class="security-status edit-action">🔒 Verschlüsselt</span>
   <input id="backupFile" type="file" accept=".json,application/json" style="display:none" onchange="importBackup(event)">
   <p class="preview-note">Druckansicht aktiv: So wird die Rechnung beim Drucken oder Speichern als PDF dargestellt. Zum Ändern wieder „Bearbeiten“ auswählen.</p>
-  <p class="hint">Version 4.0 – Schritt 8.7: Die Bearbeitungsansicht wird auf dem Bildschirm größer dargestellt. Die Druck- und PDF-Ansicht bleibt vollständig unverändert.</p>
+  <p class="hint">Version 4.0 – Schritt 8.8: Alle Bedienelemente befinden sich in einem seitlich ein- und ausklappbaren Bedienfeld. Druck- und PDF-Ansicht bleiben unverändert.</p>
 </div>
 
 
@@ -2437,6 +2535,32 @@ calculate();
 
 
 <script>
+function setToolbarOpen(open) {
+  document.body.classList.toggle("toolbar-open", open);
+  const toggle = document.getElementById("toolbarToggle");
+  const toolbar = document.getElementById("mainToolbar");
+  if (toggle) {
+    toggle.setAttribute("aria-expanded", String(open));
+    toggle.setAttribute("aria-label", open ? "Bedienfeld schließen" : "Bedienfeld öffnen");
+    toggle.textContent = open ? "×" : "☰";
+  }
+  if (toolbar) toolbar.setAttribute("aria-hidden", String(!open));
+}
+
+function toggleToolbar() {
+  setToolbarOpen(!document.body.classList.contains("toolbar-open"));
+}
+
+function closeToolbar() {
+  setToolbarOpen(false);
+}
+
+document.addEventListener("keydown", event => {
+  if (event.key === "Escape") closeToolbar();
+});
+</script>
+
+<script>
 "use strict";
 
 const JbbSecurity = (() => {
@@ -2887,7 +3011,7 @@ const JbbSecurity = (() => {
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", async function () {
     try {
-      const registration = await navigator.serviceWorker.register("./service-worker.js?v=40-step8-7-larger-editor-r1", {
+      const registration = await navigator.serviceWorker.register("./service-worker.js?v=40-step8-8-slide-panel-r1", {
         updateViaCache: "none"
       });
       await registration.update();
