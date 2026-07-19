@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
-<title>JBB Rechnungs-App 4.0 – Schritt 5</title>
+<title>JBB Rechnungs-App 4.0 – Schritt 6.1</title>
 <style>
   :root { --sheet-w: 1000; --sheet-h: 1448; }
   * { box-sizing: border-box; }
@@ -634,9 +634,39 @@ body.print-preview .invoice-summary .summary-field {
 }
 
 
-.thankyou-block{margin-top:1.2%;width:58%;color:#6d6d6d;font-size:clamp(6px,.8vw,10px);line-height:1.45}
-.thankyou-block h3{margin:0 0 .4em;color:#666;font-size:clamp(7px,.9vw,11px)}
-.tax-note{margin-top:2.2% !important;}
+.post-table-area{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) 42%;
+  column-gap:5%;
+  align-items:end;
+  margin-top:.8%;
+}
+.post-table-area .invoice-summary{
+  width:100%;
+  margin:0;
+}
+.thankyou-block{
+  width:100%;
+  min-width:0;
+  padding:0 2% .2% 0;
+  color:#7a7a7a;
+  font-size:clamp(5.5px,.70vw,8.3px);
+  line-height:1.28;
+}
+.thankyou-block .thank-script{
+  margin:0 0 .18em;
+  color:#686868;
+  font-family:"Brush Script MT","Segoe Script","Lucida Handwriting",cursive;
+  font-size:clamp(12px,1.75vw,21px);
+  line-height:1;
+  font-weight:400;
+}
+.thankyou-block p{margin:.22em 0 0;}
+.thankyou-block .thank-en{font-style:italic;}
+.tax-note{
+  margin-top:1.25% !important;
+  clear:both;
+}
 </style>
 
 <link rel="manifest" href="manifest.webmanifest">
@@ -671,7 +701,7 @@ body.print-preview .invoice-summary .summary-field {
   <button class="secondary edit-action" onclick="document.getElementById('backupFile').click()">Backup importieren</button>
   <input id="backupFile" type="file" accept=".json,application/json" style="display:none" onchange="importBackup(event)">
   <p class="preview-note">Druckansicht aktiv: So wird die Rechnung beim Drucken oder Speichern als PDF dargestellt. Zum Ändern wieder „Bearbeiten“ auswählen.</p>
-  <p class="hint">Version 4.0 – Schritt 5: Rechnungstabelle und Kleinunternehmerhinweis nach § 19 UStG wurden direkt in der App ergänzt. Es gibt keine Auswahl der Zahlungsart; die App bleibt auf Kartenzahlung ausgerichtet.</p>
+  <p class="hint">Version 4.0 – Schritt 6.1: Der Dankestext wurde platzsparend links neben der Summenspalte angeordnet. Der §-19-Hinweis folgt darunter ohne Überschneidung.</p>
 </div>
 
 
@@ -828,7 +858,14 @@ body.print-preview .invoice-summary .summary-field {
       </tbody>
     </table>
 
-    <div class="invoice-summary">
+    <div class="post-table-area">
+      <div class="thankyou-block">
+        <div class="thank-script">Vielen Dank!</div>
+        <p>Vielen Dank, dass Sie JBB Massage gewählt haben.</p>
+        <p class="thank-en"><strong>Thank you for your visit!</strong><br>Thank you for choosing JBB Massage.</p>
+      </div>
+
+      <div class="invoice-summary">
       <div class="invoice-summary-row">
         <label for="subtotal">Zwischensumme / Subtotal</label>
         <input class="field summary-field money" id="subtotal" type="text" readonly>
@@ -842,13 +879,9 @@ body.print-preview .invoice-summary .summary-field {
         <input class="field summary-field money" id="grandTotal" type="text" readonly>
       </div>
     </div>
+    </div>
 
-    <div class="thankyou-block">
-<h3>Vielen Dank! / Thank you!</h3>
-<p>Vielen Dank für Ihr Vertrauen. Es war mir eine Freude, Sie behandeln zu dürfen. Ich freue mich darauf, Sie bald wieder begrüßen zu dürfen.</p>
-<p><em>Thank you for your trust. It was a pleasure treating you. I look forward to welcoming you again.</em></p>
-</div>
-<div class="tax-note">
+    <div class="tax-note">
       <strong>Kleinunternehmerregelung / Small-business exemption:</strong><br>
       Für diese Leistung gilt die Steuerbefreiung für Kleinunternehmer gemäß § 19 UStG. Umsatzsteuer wird nicht ausgewiesen.<br>
       This service is exempt from VAT under the German small-business regulation pursuant to § 19 UStG. VAT is not shown.
@@ -1383,7 +1416,7 @@ calculate();
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", async function () {
     try {
-      const registration = await navigator.serviceWorker.register("./service-worker.js?v=40-invoice-table-r1", {
+      const registration = await navigator.serviceWorker.register("./service-worker.js?v=40-thankyou-compact-r1", {
         updateViaCache: "none"
       });
       await registration.update();
