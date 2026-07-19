@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
-<title>JBB Rechnungs-App 4.0 – Schritt 7.4</title>
+<title>JBB Rechnungs-App 4.0 – Schritt 8.1</title>
 <style>
   :root { --sheet-w: 1000; --sheet-h: 1448; }
   * { box-sizing: border-box; }
@@ -979,6 +979,86 @@ body.print-preview .date-print-text{
   }
 }
 
+
+/* Schritt 8.1 – ausschließlich Rechnungstabelle angepasst */
+.invoice-table-block{
+  left:6.2% !important;
+  right:6.2% !important;
+  top:36.2% !important;
+}
+.invoice-table{
+  width:100% !important;
+  border-collapse:collapse !important;
+  table-layout:fixed !important;
+  border:1px solid #c8c0ba !important;
+}
+.invoice-table col.pos{ width:7% !important; }
+.invoice-table col.desc{ width:46% !important; }
+.invoice-table col.qty{ width:13% !important; }
+.invoice-table col.unit{ width:17% !important; }
+.invoice-table col.total{ width:17% !important; }
+
+.invoice-table thead th{
+  height:3.4em !important;
+  padding:.45em .38em !important;
+  border:1px solid #c8c0ba !important;
+  background:#f4eee8 !important;
+  color:#4b4039 !important;
+  font-size:clamp(5.7px,.76vw,9px) !important;
+  line-height:1.16 !important;
+  text-align:center !important;
+  vertical-align:middle !important;
+}
+.invoice-table tbody tr{
+  height:6.2em !important;
+}
+.invoice-table tbody td{
+  border:1px solid #d5cec8 !important;
+  padding:.52em .48em !important;
+  vertical-align:middle !important;
+  background:rgba(255,255,255,.56) !important;
+}
+.invoice-table .position-number{
+  text-align:center !important;
+  color:#5d554f !important;
+  font-size:clamp(6.5px,.88vw,10px) !important;
+}
+.invoice-table .table-field{
+  position:static !important;
+  width:100% !important;
+  height:2.1em !important;
+  min-height:2.1em !important;
+  box-sizing:border-box !important;
+  border:0 !important;
+  border-radius:0 !important;
+  background:transparent !important;
+  padding:.16em .26em !important;
+  color:#312a26 !important;
+  font-size:clamp(6.5px,.9vw,10.5px) !important;
+  line-height:1.2 !important;
+}
+.invoice-table .description{
+  text-align:left !important;
+}
+.invoice-table .qty,
+.invoice-table .unit,
+.invoice-table .total{
+  text-align:right !important;
+  font-variant-numeric:tabular-nums;
+}
+.invoice-table .table-field:focus{
+  outline:1px solid #a7988e !important;
+  background:#fff !important;
+}
+@media print{
+  .invoice-table thead th{
+    font-size:6.6pt !important;
+  }
+  .invoice-table .table-field{
+    font-size:7.4pt !important;
+  }
+}
+
 </style>
 
 <link rel="manifest" href="manifest.webmanifest">
@@ -1013,7 +1093,7 @@ body.print-preview .date-print-text{
   <button class="secondary edit-action" onclick="document.getElementById('backupFile').click()">Backup importieren</button>
   <input id="backupFile" type="file" accept=".json,application/json" style="display:none" onchange="importBackup(event)">
   <p class="preview-note">Druckansicht aktiv: So wird die Rechnung beim Drucken oder Speichern als PDF dargestellt. Zum Ändern wieder „Bearbeiten“ auswählen.</p>
-  <p class="hint">Version 4.0 – Schritt 7.4: Kalenderauswahl links, Datum rechtsbündig, vergrößerte Datumsfelder und reine Textdarstellung in Druckansicht und PDF.</p>
+  <p class="hint">Version 4.0 – Schritt 8.1: Nur die Rechnungstabelle wurde gemäß der gezeigten Vorlage neu gestaltet. Kundendaten, Rechnungsnummer und Datumsfelder bleiben unverändert.</p>
 </div>
 
 
@@ -1840,7 +1920,7 @@ calculate();
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", async function () {
     try {
-      const registration = await navigator.serviceWorker.register("./service-worker.js?v=40-step7-4-date-print-r1", {
+      const registration = await navigator.serviceWorker.register("./service-worker.js?v=40-step8-1-table-only-r1", {
         updateViaCache: "none"
       });
       await registration.update();
