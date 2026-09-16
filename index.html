@@ -166,13 +166,16 @@
   #desc3 { left:13.8%; top:50.6%; width:35.0%; }
 
   /* Behandlungsstand direkt hinter der Leistungsbezeichnung */
-  .treatment-counter {
-    left:39.2%; width:8.2%; text-align:center; font-weight:700;
+  .treatment-part {
+    text-align:center; font-weight:700; padding:0;
     background:rgba(255,255,255,.78);
   }
-  #treatment1 { top:36.15%; }
-  #treatment2 { top:43.45%; }
-  #treatment3 { top:50.75%; }
+  .treatment-current { left:39.2%; width:3.35%; }
+  .treatment-total { left:44.05%; width:3.35%; }
+  .counter-slash { position:absolute; left:42.65%; width:1.25%; text-align:center; font-weight:700; font-size:clamp(9px,1.3vw,15px); }
+  #treatmentCurrent1,#treatmentTotal1,#treatmentSlash1 { top:36.15%; }
+  #treatmentCurrent2,#treatmentTotal2,#treatmentSlash2 { top:43.45%; }
+  #treatmentCurrent3,#treatmentTotal3,#treatmentSlash3 { top:50.75%; }
 
   /* Row values */
   #qty1 { left:55.0%; top:36.15%; width:7.4%; }
@@ -252,9 +255,18 @@
   <input class="field" id="customerCity" type="text" placeholder="PLZ / Ort / Land" aria-label="PLZ Ort Land">
   <input class="field" id="customerContact" type="text" placeholder="Telefon / E-Mail (optional)" aria-label="Telefon oder E-Mail">
 
-  <input class="field treatment-counter" id="treatment1" type="text" inputmode="numeric" placeholder="1/10" aria-label="Behandlungsstand Position 1">
-  <input class="field treatment-counter" id="treatment2" type="text" inputmode="numeric" placeholder="1/10" aria-label="Behandlungsstand Position 2">
-  <input class="field treatment-counter" id="treatment3" type="text" inputmode="numeric" placeholder="1/10" aria-label="Behandlungsstand Position 3">
+  <input id="treatment1" type="hidden">
+  <input id="treatment2" type="hidden">
+  <input id="treatment3" type="hidden">
+  <input class="field treatment-part treatment-current" id="treatmentCurrent1" type="number" min="1" step="1" inputmode="numeric" placeholder="1" aria-label="Aktuelle Behandlung Position 1">
+  <div class="counter-slash" id="treatmentSlash1">/</div>
+  <input class="field treatment-part treatment-total" id="treatmentTotal1" type="number" min="1" step="1" inputmode="numeric" placeholder="10" aria-label="Verordnete Einheiten Position 1">
+  <input class="field treatment-part treatment-current" id="treatmentCurrent2" type="number" min="1" step="1" inputmode="numeric" placeholder="1" aria-label="Aktuelle Behandlung Position 2">
+  <div class="counter-slash" id="treatmentSlash2">/</div>
+  <input class="field treatment-part treatment-total" id="treatmentTotal2" type="number" min="1" step="1" inputmode="numeric" placeholder="10" aria-label="Verordnete Einheiten Position 2">
+  <input class="field treatment-part treatment-current" id="treatmentCurrent3" type="number" min="1" step="1" inputmode="numeric" placeholder="1" aria-label="Aktuelle Behandlung Position 3">
+  <div class="counter-slash" id="treatmentSlash3">/</div>
+  <input class="field treatment-part treatment-total" id="treatmentTotal3" type="number" min="1" step="1" inputmode="numeric" placeholder="10" aria-label="Verordnete Einheiten Position 3">
 
   <input class="field money qty" id="qty1" type="number" min="0" step="1" inputmode="decimal">
   <input class="field money unit" id="unit1" type="number" min="0" step="0.01" inputmode="decimal">
@@ -393,16 +405,28 @@ function normalizeTreatmentCounter(value) {
   return current + "/" + total;
 }
 function treatmentCounterValues() {
-  return {
-    treatment1: normalizeTreatmentCounter(document.getElementById("treatment1").value),
-    treatment2: normalizeTreatmentCounter(document.getElementById("treatment2").value),
-    treatment3: normalizeTreatmentCounter(document.getElementById("treatment3").value)
-  };
+  const counters = {};
+  for (let i=1;i<=3;i++) {
+    const current = document.getElementById("treatmentCurrent"+i).value.trim();
+    const total = document.getElementById("treatmentTotal"+i).value.trim();
+    counters["treatment"+i] = current || total
+      ? normalizeTreatmentCounter(current + "/" + total)
+      : "";
+    document.getElementById("treatment"+i).value = counters["treatment"+i];
+  }
+  return counters;
+}
+function setTreatmentCounterRow(row, value) {
+  const normalized = normalizeTreatmentCounter(value);
+  const parts = normalized ? normalized.split("/") : ["",""];
+  document.getElementById("treatment"+row).value = normalized;
+  document.getElementById("treatmentCurrent"+row).value = parts[0];
+  document.getElementById("treatmentTotal"+row).value = parts[1];
 }
 function loadTreatmentCounters(customer) {
   const counters = customer && customer.treatments ? customer.treatments : {};
   for (let i=1;i<=3;i++) {
-    document.getElementById("treatment"+i).value = counters["treatment"+i] || "";
+    setTreatmentCounterRow(i, counters["treatment"+i] || "");
   }
 }
 function incrementTreatmentCounter(value, amount) {
@@ -430,18 +454,6 @@ function saveTreatmentCounters(increment) {
   customers[idx] = {...customers[idx], treatments:counters, updatedAt:Date.now()};
   setCustomers(customers);
 }
-
-document.querySelectorAll(".treatment-counter").forEach(el => {
-  el.addEventListener("change", () => {
-    const normalized = normalizeTreatmentCounter(el.value);
-    if (el.value.trim() && !normalized) {
-      alert("Bitte den Behandlungsstand wie 1/10 oder 2/10 eingeben.");
-      el.focus();
-      return;
-    }
-    el.value = normalized;
-  });
-});
 
 function customerValues() {
   return {
@@ -530,6 +542,7 @@ function setArchive(items) {
   localStorage.setItem(ARCHIVE_KEY, JSON.stringify(items));
 }
 function currentInvoiceData() {
+  treatmentCounterValues();
   const data = {};
   ids.forEach(id => {
     const el = document.getElementById(id);
@@ -586,6 +599,7 @@ function loadArchivedInvoice(archiveId) {
   ids.forEach(id => {
     if (id in item) document.getElementById(id).value = item[id];
   });
+  for (let i=1;i<=3;i++) setTreatmentCounterRow(i, item["treatment"+i] || "");
   selectedCustomerId = item.selectedCustomerId || null;
   loadedArchiveId = archiveId;
   calculate();
@@ -620,6 +634,7 @@ function loadData() {
       if (!(id in data)) return;
       el.value = data[id];
     });
+    for (let i=1;i<=3;i++) setTreatmentCounterRow(i, data["treatment"+i] || "");
     if (data.selectedCustomerId && getCustomers().some(x => x.id === data.selectedCustomerId)) {
       selectedCustomerId = data.selectedCustomerId;
     }
@@ -639,6 +654,7 @@ function clearData() {
     const el = document.getElementById(id);
     el.value = "";
   });
+  for (let i=1;i<=3;i++) setTreatmentCounterRow(i, "");
   document.getElementById("discount").value = "0";
   localStorage.removeItem("jbbInvoice");
   selectedCustomerId = null;
