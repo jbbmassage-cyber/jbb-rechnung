@@ -165,6 +165,15 @@
   #desc2 { left:13.8%; top:43.3%; width:35.0%; }
   #desc3 { left:13.8%; top:50.6%; width:35.0%; }
 
+  /* Behandlungsstand direkt hinter der Leistungsbezeichnung */
+  .treatment-counter {
+    left:39.2%; width:8.2%; text-align:center; font-weight:700;
+    background:rgba(255,255,255,.78);
+  }
+  #treatment1 { top:36.15%; }
+  #treatment2 { top:43.45%; }
+  #treatment3 { top:50.75%; }
+
   /* Row values */
   #qty1 { left:55.0%; top:36.15%; width:7.4%; }
   #unit1 { left:66.8%; top:36.15%; width:11.1%; }
@@ -239,6 +248,10 @@
   <input class="field" id="customerCity" type="text" placeholder="PLZ / Ort / Land" aria-label="PLZ Ort Land">
   <input class="field" id="customerContact" type="text" placeholder="Telefon / E-Mail (optional)" aria-label="Telefon oder E-Mail">
 
+  <input class="field treatment-counter" id="treatment1" type="text" inputmode="numeric" placeholder="1/10" aria-label="Behandlungsstand Position 1">
+  <input class="field treatment-counter" id="treatment2" type="text" inputmode="numeric" placeholder="1/10" aria-label="Behandlungsstand Position 2">
+  <input class="field treatment-counter" id="treatment3" type="text" inputmode="numeric" placeholder="1/10" aria-label="Behandlungsstand Position 3">
+
   <input class="field money qty" id="qty1" type="number" min="0" step="1" inputmode="decimal">
   <input class="field money unit" id="unit1" type="number" min="0" step="0.01" inputmode="decimal">
   <input class="field money total" id="total1" type="text" readonly>
@@ -271,6 +284,7 @@
 const ids = [
   "invoiceNumber","invoiceDate","serviceDate","dueDate",
   "customerName","customerStreet","customerCity","customerContact",
+  "treatment1","treatment2","treatment3",
   "qty1","unit1","qty2","unit2","qty3","unit3",
   "discount"
 ];
@@ -344,12 +358,72 @@ function assignInvoiceNumber(increment) {
 const CUSTOMER_KEY = "jbbCustomers_v1";
 let selectedCustomerId = null;
 
+function normalizeTreatmentCounter(value) {
+  const match = String(value || "").trim().match(/^(\d+)\s*\/\s*(\d+)$/);
+  if (!match) return "";
+  const current = Number(match[1]);
+  const total = Number(match[2]);
+  if (!Number.isInteger(current) || !Number.isInteger(total) || current < 1 || total < 1) return "";
+  return current + "/" + total;
+}
+function treatmentCounterValues() {
+  return {
+    treatment1: normalizeTreatmentCounter(document.getElementById("treatment1").value),
+    treatment2: normalizeTreatmentCounter(document.getElementById("treatment2").value),
+    treatment3: normalizeTreatmentCounter(document.getElementById("treatment3").value)
+  };
+}
+function loadTreatmentCounters(customer) {
+  const counters = customer && customer.treatments ? customer.treatments : {};
+  for (let i=1;i<=3;i++) {
+    document.getElementById("treatment"+i).value = counters["treatment"+i] || "";
+  }
+}
+function incrementTreatmentCounter(value, amount) {
+  const normalized = normalizeTreatmentCounter(value);
+  if (!normalized) return "";
+  const parts = normalized.split("/").map(Number);
+  const step = Math.max(0, parseInt(String(amount || "0"), 10) || 0);
+  return Math.min(parts[0] + step, parts[1]) + "/" + parts[1];
+}
+function saveTreatmentCounters(increment) {
+  if (!selectedCustomerId) return;
+  const customers = getCustomers();
+  const idx = customers.findIndex(x => x.id === selectedCustomerId);
+  if (idx < 0) return;
+  const counters = treatmentCounterValues();
+  if (increment) {
+    Object.keys(counters).forEach(key => {
+      const row = key.replace("treatment", "");
+      counters[key] = incrementTreatmentCounter(
+        counters[key],
+        document.getElementById("qty" + row).value
+      );
+    });
+  }
+  customers[idx] = {...customers[idx], treatments:counters, updatedAt:Date.now()};
+  setCustomers(customers);
+}
+
+document.querySelectorAll(".treatment-counter").forEach(el => {
+  el.addEventListener("change", () => {
+    const normalized = normalizeTreatmentCounter(el.value);
+    if (el.value.trim() && !normalized) {
+      alert("Bitte den Behandlungsstand wie 1/10 oder 2/10 eingeben.");
+      el.focus();
+      return;
+    }
+    el.value = normalized;
+  });
+});
+
 function customerValues() {
   return {
     name: document.getElementById("customerName").value.trim(),
     street: document.getElementById("customerStreet").value.trim(),
     city: document.getElementById("customerCity").value.trim(),
-    contact: document.getElementById("customerContact").value.trim()
+    contact: document.getElementById("customerContact").value.trim(),
+    treatments: treatmentCounterValues()
   };
 }
 function getCustomers() {
@@ -409,6 +483,7 @@ function selectCustomer(id) {
   document.getElementById("customerStreet").value = c.street || "";
   document.getElementById("customerCity").value = c.city || "";
   document.getElementById("customerContact").value = c.contact || "";
+  loadTreatmentCounters(c);
   closeCustomers();
 }
 function deleteCustomer(id) {
@@ -425,6 +500,8 @@ function saveData() {
     const el = document.getElementById(id);
     data[id] = el.value;
   });
+  data.selectedCustomerId = selectedCustomerId;
+  saveTreatmentCounters(false);
   localStorage.setItem("jbbInvoice", JSON.stringify(data));
   alert("Die Eingaben wurden auf diesem Gerät gespeichert.");
 }
@@ -442,6 +519,9 @@ function loadData() {
       if (!(id in data)) return;
       el.value = data[id];
     });
+    if (data.selectedCustomerId && getCustomers().some(x => x.id === data.selectedCustomerId)) {
+      selectedCustomerId = data.selectedCustomerId;
+    }
     synchronizeInvoiceCounter(data.invoiceNumber);
     const parsedNumber = invoiceSequenceFromNumber(data.invoiceNumber);
     if (parsedNumber) {
@@ -453,6 +533,7 @@ function loadData() {
 }
 function clearData() {
   if (!confirm("Alle Eingaben für eine neue Rechnung löschen?")) return;
+  saveTreatmentCounters(true);
   ids.forEach(id => {
     const el = document.getElementById(id);
     el.value = "";
