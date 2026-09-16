@@ -339,6 +339,20 @@ function invoiceYear() {
   return new Date().getFullYear();
 }
 
+function todayGerman() {
+  const today = new Date();
+  return String(today.getDate()).padStart(2, "0") + "." +
+    String(today.getMonth() + 1).padStart(2, "0") + "." +
+    today.getFullYear();
+}
+
+function setTodayDates() {
+  const value = todayGerman();
+  document.getElementById("invoiceDate").value = value;
+  document.getElementById("serviceDate").value = value;
+  document.getElementById("dueDate").value = value;
+}
+
 function formatInvoiceNumber(year, sequence) {
   return year + "/" + String(sequence).padStart(4, "0");
 }
@@ -624,6 +638,7 @@ function loadData() {
   const raw = localStorage.getItem("jbbInvoice");
   if (!raw) {
     assignInvoiceNumber(false);
+    setTodayDates();
     calculate();
     return;
   }
@@ -656,6 +671,7 @@ function clearData() {
   });
   for (let i=1;i<=3;i++) setTreatmentCounterRow(i, "");
   document.getElementById("discount").value = "0";
+  setTodayDates();
   localStorage.removeItem("jbbInvoice");
   selectedCustomerId = null;
   loadedArchiveId = null;
