@@ -301,13 +301,36 @@ function invoiceYear() {
 }
 
 function formatInvoiceNumber(year, sequence) {
-  return year + "-" + String(sequence).padStart(4, "0");
+  return year + "/" + String(sequence).padStart(4, "0");
+}
+
+function invoiceSequenceFromNumber(value) {
+  const match = String(value || "").trim().match(/^(\d{4})[\/-](\d{1,})$/);
+  if (!match) return null;
+  return { year: Number(match[1]), sequence: Number(match[2]) };
+}
+
+function synchronizeInvoiceCounter(invoiceNumber) {
+  const parsed = invoiceSequenceFromNumber(invoiceNumber);
+  if (!parsed || !Number.isFinite(parsed.sequence)) return;
+  const counterKey = "jbbInvoiceCounter_" + parsed.year;
+  const stored = parseInt(localStorage.getItem(counterKey) || "0", 10);
+  if (parsed.sequence > stored) {
+    localStorage.setItem(counterKey, String(parsed.sequence));
+  }
 }
 
 function assignInvoiceNumber(increment) {
   const year = invoiceYear();
   const counterKey = "jbbInvoiceCounter_" + year;
   let sequence = parseInt(localStorage.getItem(counterKey) || "0", 10);
+
+  // Letzte bereits vergebene Nummer: 2026/0008.
+  // Dadurch ist die nächste neue Rechnung zuverlässig 2026/0009.
+  if (year === 2026 && sequence < 8) {
+    sequence = 8;
+    localStorage.setItem(counterKey, String(sequence));
+  }
 
   if (increment || sequence < 1) {
     sequence += 1;
@@ -419,6 +442,12 @@ function loadData() {
       if (!(id in data)) return;
       el.value = data[id];
     });
+    synchronizeInvoiceCounter(data.invoiceNumber);
+    const parsedNumber = invoiceSequenceFromNumber(data.invoiceNumber);
+    if (parsedNumber) {
+      document.getElementById("invoiceNumber").value =
+        formatInvoiceNumber(parsedNumber.year, parsedNumber.sequence);
+    }
   } catch(e) {}
   calculate();
 }
