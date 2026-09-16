@@ -242,7 +242,7 @@
 
 <div class="viewport">
 <div class="sheet" id="sheet">
-  <input class="field" id="invoiceNumber"      style="text-align:right;direction:ltr;font-size:9px;font-weight:normal;padding:0 4px 0 1px;line-height:1;" aria-label="Rechnungsnummer" readonly>
+  <input class="field" id="invoiceNumber"      style="text-align:right;direction:ltr;font-size:9px;font-weight:normal;padding:0 4px 0 1px;line-height:1;" type="text" inputmode="numeric" placeholder="2026/0009" aria-label="Rechnungsnummer">
   <input class="field" id="invoiceDate"      style="text-align:right;direction:ltr;font-size:9px;font-weight:normal;padding:0 4px 0 1px;line-height:1;" type="text" inputmode="numeric" maxlength="10" placeholder="TT.MM.JJJJ" aria-label="Rechnungsdatum">
   <input class="field" id="serviceDate"      style="text-align:right;direction:ltr;font-size:9px;font-weight:normal;padding:0 4px 0 1px;line-height:1;" type="text" inputmode="numeric" maxlength="10" placeholder="TT.MM.JJJJ" aria-label="Leistungsdatum">
   <input class="field" id="dueDate"      style="text-align:right;direction:ltr;font-size:9px;font-weight:normal;padding:0 4px 0 1px;line-height:1;" type="text" inputmode="numeric" maxlength="10" placeholder="TT.MM.JJJJ" aria-label="Fälligkeitsdatum">
@@ -346,6 +346,17 @@ function synchronizeInvoiceCounter(invoiceNumber) {
     localStorage.setItem(counterKey, String(parsed.sequence));
   }
 }
+
+document.getElementById("invoiceNumber").addEventListener("change", function() {
+  const parsed = invoiceSequenceFromNumber(this.value);
+  if (!parsed) {
+    alert("Bitte die Rechnungsnummer wie 2026/0009 eingeben.");
+    this.focus();
+    return;
+  }
+  this.value = formatInvoiceNumber(parsed.year, parsed.sequence);
+  synchronizeInvoiceCounter(this.value);
+});
 
 function assignInvoiceNumber(increment) {
   const year = invoiceYear();
